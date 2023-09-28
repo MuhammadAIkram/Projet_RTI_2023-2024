@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 #include "../LibSockets/TCP.h"
+#include "../OVESP/OVESP.h"
 
 void HandlerSIGINT(int s);
 void TraitementConnexion(int sService);
@@ -82,6 +83,7 @@ int main(int argc,char* argv[])
         {
             perror("Erreur de Accept");
             close(sEcoute);
+            OVESP_Close();
             exit(1);
         }
 
@@ -139,6 +141,8 @@ void HandlerSIGINT(int s)
         if (socketsAcceptees[i] != -1) close(socketsAcceptees[i]);
     
     pthread_mutex_unlock(&mutexSocketsAcceptees);
+
+    OVESP_Close();
     
     exit(0);
 }
@@ -172,7 +176,7 @@ void TraitementConnexion(int sService)
         printf("\t[THREAD %p] Requete recue = %s\n",pthread_self(),requete);
 
         // ***** Traitement de la requete ***********
-        //onContinue = SMOP(requete,reponse,sService);
+        onContinue = OVESP(requete,reponse,sService);
 
         // ***** Envoi de la reponse ****************
         if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
