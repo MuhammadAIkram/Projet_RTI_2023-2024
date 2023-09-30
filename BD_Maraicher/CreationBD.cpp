@@ -45,12 +45,12 @@ int main(int argc,char *argv[])
   MYSQL* connexion = mysql_init(NULL);
   mysql_real_connect(connexion,"localhost","Student","PassStudent1_","PourStudent",0,0,0);
 
-  // Creation d'une table UNIX_FINAL
+  // Creation d'une table articles
   printf("Creation de la table articles...\n");
   mysql_query(connexion,"drop table articles;"); // au cas ou elle existerait deja
   mysql_query(connexion,"create table articles (id INT(4) auto_increment primary key, intitule varchar(20),prix FLOAT(4),stock INT(4),image varchar(20));");
 
-  // Ajout de tuples dans la table UNIX_FINAL
+  // Ajout de tuples dans la table articles
   printf("Ajout de 21 articles la table articles...\n");
   char requete[256];
   for (int i=0 ; i<21 ; i++)
@@ -58,6 +58,16 @@ int main(int argc,char *argv[])
 	  sprintf(requete,"insert into articles values (NULL,'%s',%f,%d,'%s');",Elm[i].intitule,Elm[i].prix,Elm[i].stock,Elm[i].image);
 	  mysql_query(connexion,requete);
   }
+
+  //Creation d'une table utilisateurs
+  printf("Creation de la table utilisateurs...\n");
+  mysql_query(connexion,"drop table utilisateurs;"); // au cas ou elle existerait deja
+  mysql_query(connexion,"create table utilisateurs (login varchar(50), MDP varchar(50));");
+
+  // Ajout de tuples dans la table utilisateurs
+  printf("Ajout d'utilisateurs dans la table...\n");
+  sprintf(requete,"insert into utilisateurs values ('%s','%s');", "Ahmed", "abc123");
+  mysql_query(connexion,requete);
 
   // Deconnection de la BD
   mysql_close(connexion);

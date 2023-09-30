@@ -2,8 +2,11 @@
 
 SA = ServeurAchat
 LB = LibSockets
+CL = ClientQt
 
-PROGRAMS = Serveur
+PROGRAMS = Serveur Client
+
+OBS = g++ -Wno-unused-parameter -c -pipe -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I../UNIX_DOSSIER_FINAL -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -I. -I. -I/usr/lib64/qt5/mkspecs/linux-g++ -o
 
 all:	$(PROGRAMS)
 
@@ -19,6 +22,23 @@ OVESP/OVESP.o:	OVESP/OVESP.h OVESP/OVESP.cpp
 	echo "Creation du OVESP.o"
 	g++ OVESP/OVESP.cpp -c -o OVESP/OVESP.o -Wall #-D DEBUG
 
+Client:	$(CL)/mainclient.o $(CL)/windowclient.o $(CL)/moc_windowclient.o
+	echo "Creation du Client"
+	g++ -Wno-unused-parameter -o Client $(CL)/mainclient.o $(CL)/windowclient.o $(CL)/moc_windowclient.o $(LB)/TCP.o  /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so -lpthread
+
+$(CL)/moc_windowclient.o:	$(CL)/moc_windowclient.cpp
+	echo "Creation du moc_windowclient.o"
+	$(OBS) $(CL)/moc_windowclient.o $(CL)/moc_windowclient.cpp
+
+$(CL)/windowclient.o:	$(CL)/windowclient.cpp
+	echo "Creation du windowclient.o"
+	$(OBS) $(CL)/windowclient.o $(CL)/windowclient.cpp
+
+$(CL)/mainclient.o:	$(CL)/mainclient.cpp
+	echo "Creation du mainclient.o"
+	$(OBS) $(CL)/mainclient.o $(CL)/mainclient.cpp
+
 clean:
 	rm $(LB)/*.o
 	rm OVESP/*.o
+	rm $(CL)/*.o

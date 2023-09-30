@@ -48,28 +48,48 @@ bool OVESP(char* requete, char* reponse,int socket)
             }
         }
     }
+
+    return true;
 }
 
 //***** Traitement des requetes *************************************
 bool OVESP_Login(const char* user,const char* password)
 {
-
+    return true;
 }
 
 //***** Gestion de l'état du protocole ******************************
 int estPresent(int socket)
 {
+    int indice = -1;
 
+    pthread_mutex_lock(&mutexClients);
+
+    for(int i=0 ; i<nbClients ; i++)
+        if (clients[i] == socket) { indice = i; break; }
+
+    pthread_mutex_unlock(&mutexClients);
+    
+    return indice;
 }
 
 void ajoute(int socket)
 {
-
+    pthread_mutex_lock(&mutexClients);
+    clients[nbClients] = socket;
+    nbClients++;
+    pthread_mutex_unlock(&mutexClients);
 }
 
 void retire(int socket)
 {
-
+    int pos = estPresent(socket);
+    if (pos == -1) return;
+    pthread_mutex_lock(&mutexClients);
+    for (int i=pos ; i<=nbClients-2 ; i++)
+        clients[i] = clients[i+1];
+    nbClients--;
+    pthread_mutex_unlock(&mutexClients);
 }
 
 //***** Fin prématurée **********************************************
