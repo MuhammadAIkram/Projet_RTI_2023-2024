@@ -32,6 +32,8 @@ WindowClient::WindowClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::Wi
     // Exemples à supprimer
     setArticle("pommes",5.53,18,"pommes.jpg");
     ajouteArticleTablePanier("cerises",8.96,2);
+
+    //printf("socket creee = %d\n",getSocket());
 }
 
 WindowClient::~WindowClient()
@@ -273,7 +275,7 @@ void WindowClient::closeEvent(QCloseEvent *event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonLogin_clicked()
 {
-
+  printf("socket creee = %d\n",getSocket());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,4 +318,17 @@ void WindowClient::on_pushButtonViderPanier_clicked()
 void WindowClient::on_pushButtonPayer_clicked()
 {
 
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WindowClient::setSocket(const int s)
+{
+  sClient = s;
+  printf("socket creee = %d\n",sClient);
+}
+
+int WindowClient::getSocket()
+{
+  return sClient;
 }

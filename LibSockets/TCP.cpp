@@ -106,8 +106,6 @@ int ClientSocket(char* ipServeur,int portServeur)
         perror("Erreur de socket()");
         exit(1);
     }
-
-    printf("socket creee = %d\n",sClient);
     
     // Construction de l'adresse du serveur
     struct addrinfo hints;
