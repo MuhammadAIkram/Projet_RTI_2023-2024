@@ -2,9 +2,17 @@
 #include "ui_windowclient.h"
 #include <QMessageBox>
 #include <string>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
 using namespace std;
 
 extern WindowClient *w;
+
+#include "../LibSockets/TCP.h"
 
 #define REPERTOIRE_IMAGES "images/"
 
@@ -30,10 +38,8 @@ WindowClient::WindowClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::Wi
     setPublicite("!!! Bienvenue sur le Maraicher en ligne !!!");
 
     // Exemples à supprimer
-    setArticle("pommes",5.53,18,"pommes.jpg");
-    ajouteArticleTablePanier("cerises",8.96,2);
-
-    //printf("socket creee = %d\n",getSocket());
+    //setArticle("pommes",5.53,18,"pommes.jpg");
+    //ajouteArticleTablePanier("cerises",8.96,2);
 }
 
 WindowClient::~WindowClient()
@@ -275,7 +281,69 @@ void WindowClient::closeEvent(QCloseEvent *event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonLogin_clicked()
 {
-  printf("socket creee = %d\n",getSocket());
+
+  if(strlen(getNom()) == 0)
+  {
+    dialogueErreur("Login","Veuillez saisir un nom!");
+    return;
+  }
+
+  if(strlen(getMotDePasse()) == 0)
+  {
+    dialogueErreur("Login","Veuillez saisir un mot de passe!");
+    return;
+  }
+
+  char texte[80];
+  strcpy(texte, "LOGIN#");
+  strcat(texte, getNom());
+  strcat(texte, "#");
+  strcat(texte, getMotDePasse());
+  int nbEcrits;
+
+  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",texte);
+
+  char buffer[100];
+  int nbLus;
+  
+  if ((nbLus = Receive(sClient,buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+  
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
+
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"LOGIN") == 0) 
+  {
+    char reponse[20], message[100];
+    strcpy(reponse,strtok(NULL,"#"));
+
+    if (strcmp(reponse,"ok") == 0) 
+    {
+      dialogueMessage("Login", "vous êtes connecté avec succès");
+
+      loginOK();
+    }
+    else
+    {
+      strcpy(message,strtok(NULL,"#"));
+
+      dialogueErreur("Login", message);
+    }
+
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

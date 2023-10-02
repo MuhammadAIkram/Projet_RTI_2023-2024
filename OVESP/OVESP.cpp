@@ -32,7 +32,6 @@ bool OVESP(char* requete, char* reponse,int socket)
         if (estPresent(socket) >= 0) // client déjà loggé
         {
             sprintf(reponse,"LOGIN#ko#Client déjà loggé !");
-            return false;
         }
         else
         {
@@ -43,8 +42,7 @@ bool OVESP(char* requete, char* reponse,int socket)
             } 
             else
             {
-                sprintf(reponse,"LOGIN#ko#Mauvais identifiants !");
-                return false;
+                sprintf(reponse,"LOGIN#ko#Mauvais identifiants ou mot de passe!");
             }
         }
     }

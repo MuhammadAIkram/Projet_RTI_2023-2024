@@ -142,7 +142,7 @@ int Send(int sSocket,char* data,int taille)
     // Preparation de la charge utile
     char trame[TAILLE_MAX_DATA+2];
     memcpy(trame,data,taille);
-    trame[taille] = '#';
+    trame[taille] = '%';
     trame[taille+1] = ')';
     
     // Ecriture sur la socket
@@ -162,7 +162,7 @@ int Receive(int sSocket,char* data)
             return -1;
         if (nbLus == 0) return i; // connexion fermee par client
         
-        if (lu1 == '#')
+        if (lu1 == '%')
         {
             if ((nbLus = read(sSocket,&lu2,1)) == -1)
                 return -1;
