@@ -20,7 +20,7 @@ $(LB)/TCP.o:	$(LB)/TCP.h $(LB)/TCP.cpp
 
 OVESP/OVESP.o:	OVESP/OVESP.h OVESP/OVESP.cpp
 	echo "Creation du OVESP.o"
-	g++ OVESP/OVESP.cpp -c -o OVESP/OVESP.o -Wall #-D DEBUG
+	g++ OVESP/OVESP.cpp -c -o OVESP/OVESP.o -Wall -I/usr/include/mysql -m64 -L/usr/lib64/mysql -lmysqlclient -lpthread -lz -lm -lrt -lssl -lcrypto -ldl #-D DEBUG
 
 Client:	$(CL)/mainclient.o $(CL)/windowclient.o $(CL)/moc_windowclient.o
 	echo "Creation du Client"

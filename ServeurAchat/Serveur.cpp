@@ -144,7 +144,7 @@ void HandlerSIGINT(int s)
 
     OVESP_Close();
     
-    exit(0);
+    exit(1);
 }
 
 void TraitementConnexion(int sService)
