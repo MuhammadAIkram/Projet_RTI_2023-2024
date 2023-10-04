@@ -80,7 +80,7 @@ int OVESP_Login(const char* user,const char* password)
 
     strcpy(table, "utilisateurs");
 
-    sprintf(requete,"select * from %s where login = %s;", table, user);
+    sprintf(requete,"select * from %s where login = '%s';", table, user);
 
 
     if (mysql_query(connexion,requete) != 0)

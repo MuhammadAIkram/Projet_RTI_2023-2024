@@ -12,7 +12,7 @@ all:	$(PROGRAMS)
 
 Serveur:	$(SA)/Serveur.cpp $(LB)/TCP.o OVESP/OVESP.o
 	echo "Creation du Serveur"
-	g++ $(SA)/Serveur.cpp $(LB)/TCP.o OVESP/OVESP.o -o Serveur -lpthread
+	g++ $(SA)/Serveur.cpp $(LB)/TCP.o OVESP/OVESP.o -o Serveur -lpthread -I/usr/include/mysql -m64 -L/usr/lib64/mysql -lmysqlclient
 
 $(LB)/TCP.o:	$(LB)/TCP.h $(LB)/TCP.cpp
 	echo "Creation du TCP.o"
