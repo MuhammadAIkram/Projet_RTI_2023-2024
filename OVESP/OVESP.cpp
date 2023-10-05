@@ -74,6 +74,13 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         }
     }
 
+    // ***** LOGOUT ******************************************
+    if (strcmp(ptr,"LOGOUT") == 0)
+    {
+        OVESP_Logout(socket);
+        sprintf(reponse,"LOGOUT#ok");
+    }
+
     return true;
 }
 
@@ -181,6 +188,11 @@ int OVESP_NouveauLogin(const char* user,const char* password,MYSQL* connexion)
     //1: client deja existant avec cette identifiant
 
     return val;
+}
+
+void OVESP_Logout(int sock)
+{
+    retire(sock);
 }
 
 //***** Gestion de l'état du protocole ******************************

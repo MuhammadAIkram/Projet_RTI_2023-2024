@@ -329,7 +329,9 @@ void WindowClient::on_pushButtonLogin_clicked()
 
     if (strcmp(reponse,"ok") == 0) 
     {
-      dialogueMessage("Login", "vous êtes connecté avec succès");
+      if(isNouveauClientChecked() == 1) dialogueMessage("Login", "Vous avez été inscrit avec succès");
+
+      dialogueMessage("Login", "Vous êtes connecté avec succès");
 
       loginOK();
     }
@@ -346,7 +348,46 @@ void WindowClient::on_pushButtonLogin_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonLogout_clicked()
 {
+  char texte[50];
+  sprintf(texte,"LOGOUT");
+  int nbEcrits;
 
+  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",texte);
+
+  char buffer[50];
+  int nbLus;
+  
+  if ((nbLus = Receive(sClient,buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+  
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
+
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"LOGOUT") == 0) 
+  {
+    char reponse[20];
+    strcpy(reponse,strtok(NULL,"#"));
+
+    if (strcmp(reponse,"ok") == 0) 
+    {
+      dialogueMessage("Logout", "BYE BYE ;)");
+
+      logoutOK();
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
