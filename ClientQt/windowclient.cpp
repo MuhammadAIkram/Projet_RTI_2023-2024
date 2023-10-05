@@ -282,23 +282,20 @@ void WindowClient::closeEvent(QCloseEvent *event)
 void WindowClient::on_pushButtonLogin_clicked()
 {
 
-  if(strlen(getNom()) == 0)
+  if(strlen(getNom()) < 3)
   {
-    dialogueErreur("Login","Veuillez saisir un nom!");
+    dialogueErreur("Login","Veuillez entrer le nom d'utilisateur, il doit comporter au moins 3 caractères!");
     return;
   }
 
-  if(strlen(getMotDePasse()) == 0)
+  if(strlen(getMotDePasse()) < 5)
   {
-    dialogueErreur("Login","Veuillez saisir un mot de passe!");
+    dialogueErreur("Login","Veuillez entrer le mot de passe, il doit comporter au moins 5 caractères!");
     return;
   }
 
-  char texte[80];
-  strcpy(texte, "LOGIN#");
-  strcat(texte, getNom());
-  strcat(texte, "#");
-  strcat(texte, getMotDePasse());
+  char texte[100];
+  sprintf(texte,"LOGIN#%s#%s#%d", getNom(), getMotDePasse(), isNouveauClientChecked());
   int nbEcrits;
 
   if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)

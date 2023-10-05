@@ -4,6 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
+#include <mysql.h>
 
 #include "../LibSockets/TCP.h"
 #include "../OVESP/OVESP.h"
@@ -11,8 +12,10 @@
 void HandlerSIGINT(int s);
 void TraitementConnexion(int sService);
 void* FctThreadClient(void* p);
+void ConnectDB();
 
 int sEcoute;
+MYSQL* connexion;
 
 // Gestion du pool de threads
 #define NB_THREADS_POOL 2
@@ -22,6 +25,7 @@ int socketsAcceptees[TAILLE_FILE_ATTENTE];
 int indiceEcriture=0, indiceLecture=0;
 
 pthread_mutex_t mutexSocketsAcceptees;
+pthread_mutex_t mutexConnDB;
 pthread_cond_t condSocketsAcceptees;
 
 
@@ -36,6 +40,7 @@ int main(int argc,char* argv[])
 
     //initialisation du mutex et condition
     pthread_mutex_init(&mutexSocketsAcceptees,NULL);
+    pthread_mutex_init(&mutexConnDB,NULL);
     pthread_cond_init(&condSocketsAcceptees,NULL);
 
     // Initialisation socketsAcceptees
@@ -60,6 +65,9 @@ int main(int argc,char* argv[])
         perror("Erreur de ServeurSocket");
         exit(1);
     }
+
+    //connexion DB
+    ConnectDB();
 
     // Creation du pool de threads
     printf("Création du pool de threads.\n");
@@ -143,6 +151,8 @@ void HandlerSIGINT(int s)
     pthread_mutex_unlock(&mutexSocketsAcceptees);
 
     OVESP_Close();
+
+    mysql_close(connexion);
     
     exit(1);
 }
@@ -176,7 +186,9 @@ void TraitementConnexion(int sService)
         printf("\t[THREAD %p] Requete recue = %s\n",pthread_self(),requete);
 
         // ***** Traitement de la requete ***********
-        onContinue = OVESP(requete,reponse,sService);
+        pthread_mutex_lock(&mutexConnDB);
+        onContinue = OVESP(requete,reponse,sService,connexion);
+        pthread_mutex_unlock(&mutexConnDB);
 
         // ***** Envoi de la reponse ****************
         if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
@@ -190,5 +202,17 @@ void TraitementConnexion(int sService)
         
         if (!onContinue) 
             printf("\t[THREAD %p] Fin de connexion de la socket %d\n",pthread_self(),sService);
+    }
+}
+
+void ConnectDB()
+{
+    // Connexion à la base de donnée
+    connexion = mysql_init(NULL);
+    
+    if (mysql_real_connect(connexion,"localhost","Student","PassStudent1_","PourStudent",0,0,0) == NULL)
+    {
+        fprintf(stderr,"(SERVEUR) Erreur de connexion à la base de données...\n");
+        exit(1);
     }
 }
