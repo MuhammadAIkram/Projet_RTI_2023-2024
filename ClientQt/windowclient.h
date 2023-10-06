@@ -44,6 +44,9 @@ public:
     void setSocket(const int s);
     int getSocket();
 
+    //pour envoyer la requete consult au serveur
+    void ConsultArticle(int Id);
+
 private slots:
     void on_pushButtonLogin_clicked();
     void on_pushButtonLogout_clicked();
@@ -59,6 +62,7 @@ private:
 
     char motDePasse[20];
     char nom[20];
+
     int sClient;
 };
 #endif // WINDOWCLIENT_H

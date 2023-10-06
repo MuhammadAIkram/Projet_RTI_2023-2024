@@ -12,9 +12,11 @@ using namespace std;
 
 extern WindowClient *w;
 
+int IdCourant;
+
 #include "../LibSockets/TCP.h"
 
-#define REPERTOIRE_IMAGES "images/"
+#define REPERTOIRE_IMAGES "ClientQt/images/"
 
 WindowClient::WindowClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::WindowClient)
 {
@@ -334,6 +336,8 @@ void WindowClient::on_pushButtonLogin_clicked()
       dialogueMessage("Login", "Vous êtes connecté avec succès");
 
       loginOK();
+
+      ConsultArticle(1);
     }
     else
     {
@@ -393,13 +397,13 @@ void WindowClient::on_pushButtonLogout_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonSuivant_clicked()
 {
-
+  ConsultArticle(IdCourant+1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonPrecedent_clicked()
 {
-
+  ConsultArticle(IdCourant-1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -437,4 +441,61 @@ void WindowClient::setSocket(const int s)
 int WindowClient::getSocket()
 {
   return sClient;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WindowClient::ConsultArticle(int Id)
+{
+  char texte[50];
+  sprintf(texte,"CONSULT#%d", Id);
+  int nbEcrits;
+
+  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",texte);
+
+  char buffer[100];
+  int nbLus;
+  
+  if ((nbLus = Receive(sClient,buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
+
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"CONSULT") == 0) 
+  {
+    //char reponse[20];
+    int newID;
+    
+    newID = atoi(strtok(NULL,"#"));
+
+    if (newID != -1) 
+    {
+      char intitule[20], image[20];
+      float prix;
+      int stock;
+
+      strcpy(intitule,strtok(NULL,"#"));
+      stock = atoi(strtok(NULL,"#"));
+      prix = atof(strtok(NULL,"#"));
+      strcpy(image,strtok(NULL,"#"));
+
+      setArticle(intitule, prix, stock , image);
+
+      IdCourant = newID;
+    }
+  }
 }

@@ -81,6 +81,14 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         sprintf(reponse,"LOGOUT#ok");
     }
 
+    // ***** CONSULT ******************************************
+    if (strcmp(ptr,"CONSULT") == 0)
+    {
+        int idCon = atoi(strtok(NULL,"#"));
+
+        OVESP_Consult(idCon, reponse, conn);
+    }
+
     return true;
 }
 
@@ -193,6 +201,48 @@ int OVESP_NouveauLogin(const char* user,const char* password,MYSQL* connexion)
 void OVESP_Logout(int sock)
 {
     retire(sock);
+}
+
+void OVESP_Consult(int id, char* rep, MYSQL* connexion)
+{
+    char requete[200];
+    MYSQL_RES  *resultat;
+    MYSQL_ROW  Tuple;
+
+    char table[20];
+
+    strcpy(table, "articles");
+
+    sprintf(requete,"select * from %s where id = %d;", table, id);
+
+
+    if (mysql_query(connexion,requete) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete SELECT réussie sur login.\n");
+
+    // Affichage du Result Set
+
+    if ((resultat = mysql_store_result(connexion)) == NULL)
+    {
+        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    // Preparation de la reponse
+
+    if((Tuple = mysql_fetch_row(resultat)) != NULL)
+    {
+        printf("%s - %s - %s - %s - %s \n", Tuple[0], Tuple[1], Tuple[2], Tuple[3], Tuple[4]);
+        sprintf(rep,"CONSULT#%s#%s#%s#%s#%s", Tuple[0], Tuple[1], Tuple[3], Tuple[2], Tuple[4]);
+    }
+    else
+    {
+        sprintf(rep,"CONSULT#-1");
+    }
 }
 
 //***** Gestion de l'état du protocole ******************************
