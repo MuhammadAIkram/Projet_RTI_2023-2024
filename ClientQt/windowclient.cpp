@@ -12,9 +12,19 @@ using namespace std;
 
 extern WindowClient *w;
 
-int IdCourant, StockCourant;
-char IntituleCourant[20], ImageCourant[20];
-float PrixCourant;
+typedef struct
+{
+  int   id;
+  char  intitule[20];
+  float prix;
+  int   stock;  
+  char  image[20];
+} ARTICLE;
+
+ARTICLE articleCourant;
+ARTICLE Caddie[10];
+int nbArticles = 0;
+float totalCaddie = 0.0;
 
 #include "../LibSockets/TCP.h"
 
@@ -44,6 +54,12 @@ WindowClient::WindowClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::Wi
     // Exemples à supprimer
     //setArticle("pommes",5.53,18,"pommes.jpg");
     //ajouteArticleTablePanier("cerises",8.96,2);
+
+    //initialiser vecteur articles avec des valeurs temporaire
+    for(int i = 0; i < 10; i++)
+    {
+      Caddie[i].id = 0; //0 utiliser pour indiquer une place libre
+    }
 }
 
 WindowClient::~WindowClient()
@@ -399,20 +415,30 @@ void WindowClient::on_pushButtonLogout_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonSuivant_clicked()
 {
-  ConsultArticle(IdCourant+1);
+  ConsultArticle(articleCourant.id+1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonPrecedent_clicked()
 {
-  ConsultArticle(IdCourant-1);
+  ConsultArticle(articleCourant.id-1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonAcheter_clicked()
 {
+  int i = 0;
+
+  while(Caddie[i].id != articleCourant.id && i < 10) i++; //verifie si cette article existe deja dans le panier
+
+  if(nbArticles == 10 && i == 10)
+  {
+    dialogueMessage("Achat", "votre panier est plein, merci d'acheter les articles ou de supprimer un article du panier !");
+    return;
+  }
+
   char texte[100];
-  sprintf(texte,"ACHAT#%d#%d", IdCourant, getQuantite());
+  sprintf(texte,"ACHAT#%d#%d", articleCourant.id, getQuantite());
   int nbEcrits;
 
   if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
@@ -454,12 +480,55 @@ void WindowClient::on_pushButtonAcheter_clicked()
       if(newStock == 0) dialogueErreur("Achat", "stock insuffisant!");
       else
       {
-        IdCourant = newID;
-        StockCourant = newStock - getQuantite();
+        articleCourant.id = newID;
+        articleCourant.stock = newStock - getQuantite();
         setlocale(LC_NUMERIC, "C"); //si je ne met pas cela, il ne convertie pas bien le string en float ex: 10.33 -> 10.00
-        PrixCourant = atof(strtok(NULL,"#"));
+        articleCourant.prix = atof(strtok(NULL,"#"));
 
-        setArticle(IntituleCourant, PrixCourant, StockCourant , ImageCourant);
+        setArticle(articleCourant.intitule, articleCourant.prix, articleCourant.stock , articleCourant.image);
+
+        //pour le panier
+
+        if(i == 10)
+        {
+          i = 0;
+
+          while(Caddie[i].id != 0 && i < 10) i++; //trouve le premier place libre
+
+          Caddie[i].id = articleCourant.id;
+          strcpy(Caddie[i].intitule, articleCourant.intitule);
+          Caddie[i].prix = articleCourant.prix;
+          Caddie[i].stock = getQuantite();
+          strcpy(Caddie[i].image, articleCourant.image);
+          
+          ajouteArticleTablePanier(Caddie[i].intitule, Caddie[i].prix, Caddie[i].stock);
+          
+          totalCaddie = totalCaddie + (Caddie[i].stock*Caddie[i].prix);
+
+          setTotal(totalCaddie);
+
+          nbArticles++;
+        }
+        else
+        {
+          videTablePanier();
+
+          Caddie[i].stock = Caddie[i].stock + getQuantite();
+          totalCaddie = 0.0;
+          setTotal(-1.0);
+
+          i = 0;
+
+          while(i < nbArticles)
+          {
+            ajouteArticleTablePanier(Caddie[i].intitule, Caddie[i].prix, Caddie[i].stock);
+            totalCaddie = totalCaddie + (Caddie[i].stock*Caddie[i].prix);
+
+            i++;
+          }
+
+          setTotal(totalCaddie);
+        }
       }
     }
     else
@@ -472,7 +541,13 @@ void WindowClient::on_pushButtonAcheter_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonSupprimer_clicked()
 {
+  int ind = getIndiceArticleSelectionne();
 
+  if(ind == -1) dialogueErreur("PANIER", "AUCUN ARTICLE SELECTIONNE");
+  else
+  {
+    videTablePanier();
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -552,11 +627,11 @@ void WindowClient::ConsultArticle(int Id)
 
       setArticle(intitule, prix, stock , image);
 
-      IdCourant = newID;
-      StockCourant = stock;
-      PrixCourant = prix;
-      strcpy(IntituleCourant, intitule);
-      strcpy(ImageCourant, image);
+      articleCourant.id = newID;
+      articleCourant.stock = stock;
+      articleCourant.prix = prix;
+      strcpy(articleCourant.intitule, intitule);
+      strcpy(articleCourant.image, image);
     }
   }
 }
