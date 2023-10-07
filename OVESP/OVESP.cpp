@@ -89,6 +89,15 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         OVESP_Consult(idCon, reponse, conn);
     }
 
+    // ***** ACHAT ******************************************
+    if (strcmp(ptr,"ACHAT") == 0)
+    {
+        int idCon = atoi(strtok(NULL,"#"));
+        int quant = atoi(strtok(NULL,"#"));
+
+        OVESP_Achat(idCon, reponse, quant, conn);
+    }
+
     return true;
 }
 
@@ -222,7 +231,7 @@ void OVESP_Consult(int id, char* rep, MYSQL* connexion)
         exit(1);
     }
 
-    printf("Requete SELECT réussie sur login.\n");
+    printf("Requete SELECT réussie sur Consult.\n");
 
     // Affichage du Result Set
 
@@ -242,6 +251,63 @@ void OVESP_Consult(int id, char* rep, MYSQL* connexion)
     else
     {
         sprintf(rep,"CONSULT#-1");
+    }
+}
+
+void OVESP_Achat(int id, char* rep, int quant, MYSQL* connexion)
+{
+    char requete[200];
+    MYSQL_RES  *resultat;
+    MYSQL_ROW  Tuple;
+
+    char table[20];
+
+    strcpy(table, "articles");
+
+    sprintf(requete,"select * from %s where id = %d;", table, id);
+
+
+    if (mysql_query(connexion,requete) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete SELECT réussie sur Achat.\n");
+
+    // Affichage du Result Set
+
+    if ((resultat = mysql_store_result(connexion)) == NULL)
+    {
+        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    // Preparation de la reponse
+
+    if((Tuple = mysql_fetch_row(resultat)) != NULL)
+    {
+        if(atoi(Tuple[3]) < quant) sprintf(rep,"ACHAT#%s#0", Tuple[0]);
+        else
+        {
+            int newStock = atoi(Tuple[3]) - quant;
+
+            sprintf(requete,"update %s set stock = %d where id = %d;", table, newStock, id);
+
+            if (mysql_query(connexion,requete) != 0)
+            {
+                fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+                exit(1);
+            }
+
+            printf("Requete UPDATE réussie.\n");
+
+            sprintf(rep,"ACHAT#%s#%s#%s", Tuple[0], Tuple[3], Tuple[2]);
+        }
+    }
+    else
+    {
+        sprintf(rep,"ACHAT#-1");
     }
 }
 

@@ -12,7 +12,9 @@ using namespace std;
 
 extern WindowClient *w;
 
-int IdCourant;
+int IdCourant, StockCourant;
+char IntituleCourant[20], ImageCourant[20];
+float PrixCourant;
 
 #include "../LibSockets/TCP.h"
 
@@ -409,7 +411,62 @@ void WindowClient::on_pushButtonPrecedent_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonAcheter_clicked()
 {
+  char texte[100];
+  sprintf(texte,"ACHAT#%d#%d", IdCourant, getQuantite());
+  int nbEcrits;
 
+  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",texte);
+
+  char buffer[100];
+  int nbLus;
+  
+  if ((nbLus = Receive(sClient,buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+  
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
+
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"ACHAT") == 0) 
+  {
+    int newID;
+    
+    newID = atoi(strtok(NULL,"#"));
+
+    if(newID != -1)
+    {
+      int newStock;
+
+      newStock = atoi(strtok(NULL,"#"));
+
+      if(newStock == 0) dialogueErreur("Achat", "stock insuffisant!");
+      else
+      {
+        IdCourant = newID;
+        StockCourant = newStock - getQuantite();
+        setlocale(LC_NUMERIC, "C"); //si je ne met pas cela, il ne convertie pas bien le string en float ex: 10.33 -> 10.00
+        PrixCourant = atof(strtok(NULL,"#"));
+
+        setArticle(IntituleCourant, PrixCourant, StockCourant , ImageCourant);
+      }
+    }
+    else
+    {
+      dialogueErreur("Achat", "Erreur");
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,7 +534,6 @@ void WindowClient::ConsultArticle(int Id)
 
   if (strcmp(ptr,"CONSULT") == 0) 
   {
-    //char reponse[20];
     int newID;
     
     newID = atoi(strtok(NULL,"#"));
@@ -490,12 +546,17 @@ void WindowClient::ConsultArticle(int Id)
 
       strcpy(intitule,strtok(NULL,"#"));
       stock = atoi(strtok(NULL,"#"));
+      setlocale(LC_NUMERIC, "C"); //si je ne met pas cela, il ne convertie pas bien le string en float ex: 10.33 -> 10.00
       prix = atof(strtok(NULL,"#"));
       strcpy(image,strtok(NULL,"#"));
 
       setArticle(intitule, prix, stock , image);
 
       IdCourant = newID;
+      StockCourant = stock;
+      PrixCourant = prix;
+      strcpy(IntituleCourant, intitule);
+      strcpy(ImageCourant, image);
     }
   }
 }
