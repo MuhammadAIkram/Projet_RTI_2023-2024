@@ -9,6 +9,7 @@ int OVESP_NouveauLogin(const char* user,const char* password,MYSQL* connexion);
 void OVESP_Logout(int sock);
 void OVESP_Consult(int id, char* rep, MYSQL* connexion);
 void OVESP_Achat(int id, char* rep, int quant, MYSQL* connexion);
+void OVESP_Cancel(int id, int quant, char* rep, MYSQL* connexion);
 void OVESP_Close();
 
 #endif

@@ -427,6 +427,12 @@ void WindowClient::on_pushButtonPrecedent_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonAcheter_clicked()
 {
+  if(getQuantite() == 0)
+  {
+    dialogueErreur("Achat", "Veuillez sélectionner une valeur supérieure à 0!");
+    return;
+  }
+
   int i = 0;
 
   while(Caddie[i].id != articleCourant.id && i < 10) i++; //verifie si cette article existe deja dans le panier
@@ -546,7 +552,98 @@ void WindowClient::on_pushButtonSupprimer_clicked()
   if(ind == -1) dialogueErreur("PANIER", "AUCUN ARTICLE SELECTIONNE");
   else
   {
-    videTablePanier();
+    char texte[100];
+    sprintf(texte,"CANCEL#%d#%d", Caddie[ind].id, Caddie[ind].stock);
+    int nbEcrits;
+
+    if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+    {
+      perror("Erreur de Send");
+      exit(1);
+    }
+
+    printf("NbEcrits = %d\n",nbEcrits);
+    printf("Ecrit = --%s--\n",texte);
+
+    char buffer[100];
+    int nbLus;
+    
+    if ((nbLus = Receive(sClient,buffer)) < 0)
+    {
+        perror("Erreur de Receive");
+        exit(1);
+    }
+    
+    printf("NbLus = %d\n",nbLus);
+    buffer[nbLus] = 0;
+    printf("Lu = --%s--\n",buffer);
+
+    char *ptr = strtok(buffer,"#");
+
+    if (strcmp(ptr,"CANCEL") == 0) 
+    {
+      int newID;
+    
+      newID = atoi(strtok(NULL,"#"));
+
+      if(newID != -1)
+      {
+
+        if(articleCourant.id == newID)
+        {
+          articleCourant.stock = atoi(strtok(NULL,"#"));
+
+          setArticle(articleCourant.intitule, articleCourant.prix, articleCourant.stock , articleCourant.image);
+        }
+
+        // Suppression de l'aricle du panier
+        if(Caddie[ind+1].id == 0 || ind == 9)
+        {
+          Caddie[ind].id = 0;
+          nbArticles--;
+        }
+        else
+        {
+          while(Caddie[ind+1].id != 0 && ind < nbArticles-1)
+          {
+            Caddie[ind].id = Caddie[ind+1].id;
+            strcpy(Caddie[ind].intitule, Caddie[ind+1].intitule);
+            Caddie[ind].prix = Caddie[ind+1].prix;
+            Caddie[ind].stock = Caddie[ind+1].stock;
+            strcpy(Caddie[ind].image, Caddie[ind+1].image);
+
+            ind++;
+          }
+
+          Caddie[ind].id = 0;
+          
+          nbArticles--;
+        }
+
+        //mise a jour du panier
+
+        videTablePanier();
+
+        totalCaddie = 0.0;
+        setTotal(-1.0);
+
+        int i = 0;
+
+        while(i < nbArticles)
+        {
+          ajouteArticleTablePanier(Caddie[i].intitule, Caddie[i].prix, Caddie[i].stock);
+          totalCaddie = totalCaddie + (Caddie[i].stock*Caddie[i].prix);
+
+          i++;
+        }
+
+        setTotal(totalCaddie);
+      }
+      else
+      {
+        dialogueErreur("Cancel", "Erreur");
+      }
+    }
   }
 }
 

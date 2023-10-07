@@ -98,6 +98,15 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         OVESP_Achat(idCon, reponse, quant, conn);
     }
 
+    // ***** CANCEL ******************************************
+    if (strcmp(ptr,"CANCEL") == 0)
+    {
+        int id = atoi(strtok(NULL,"#"));
+        int stock = atoi(strtok(NULL,"#"));
+
+        OVESP_Cancel(id, stock, reponse, conn);
+    }
+
     return true;
 }
 
@@ -308,6 +317,59 @@ void OVESP_Achat(int id, char* rep, int quant, MYSQL* connexion)
     else
     {
         sprintf(rep,"ACHAT#-1");
+    }
+}
+
+void OVESP_Cancel(int id, int quant, char* rep, MYSQL* connexion)
+{
+    char requete[200];
+    MYSQL_RES  *resultat;
+    MYSQL_ROW  Tuple;
+
+    char table[20];
+
+    strcpy(table, "articles");
+
+    sprintf(requete,"select * from %s where id = %d;", table, id);
+
+
+    if (mysql_query(connexion,requete) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete SELECT réussie sur Cancel.\n");
+
+    // Affichage du Result Set
+
+    if ((resultat = mysql_store_result(connexion)) == NULL)
+    {
+        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    // Preparation de la reponse
+
+    if((Tuple = mysql_fetch_row(resultat)) != NULL)
+    {
+        int newStock = atoi(Tuple[3]) + quant;
+
+        sprintf(requete,"update %s set stock = %d where id = %d;", table, newStock, id);
+
+        if (mysql_query(connexion,requete) != 0)
+        {
+            fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+            exit(1);
+        }
+
+        printf("Requete UPDATE réussie.\n");
+
+        sprintf(rep,"CANCEL#%s#%d", Tuple[0], atoi(Tuple[3]) + quant);
+    }
+    else
+    {
+        sprintf(rep,"CANCEL#-1");
     }
 }
 
