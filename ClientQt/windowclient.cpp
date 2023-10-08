@@ -650,7 +650,87 @@ void WindowClient::on_pushButtonSupprimer_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonViderPanier_clicked()
 {
+  char texte[200];
+  sprintf(texte,"CANCEL_ALL#%d", nbArticles);
+  int nbEcrits;
 
+  int i = 0;
+
+  while(i < 10 && Caddie[i].id != 0)
+  {
+    char str[20];
+
+    strcat(texte, "#");
+
+    sprintf(str, "%d&%d", Caddie[i].id, Caddie[i].stock);
+
+    strcat(texte, str);
+
+    i++;
+  }
+
+  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",texte);
+
+  char buffer[100];
+  int nbLus;
+  
+  if ((nbLus = Receive(sClient,buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+  
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
+  
+  
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"CANCEL_ALL") == 0) 
+  {
+    char reponse[20];
+    strcpy(reponse,strtok(NULL,"#"));
+
+    if (strcmp(reponse,"ko") == 0) 
+    {
+      dialogueErreur("Vider", "Vous n'avez rien dans votre panier !");
+    }
+    else
+    {
+      //mise a jour du panier
+
+      videTablePanier();
+
+      totalCaddie = 0.0;
+      setTotal(-1.0);
+
+      int i = 0;
+
+      while(i < nbArticles)
+      {
+        if(Caddie[i].id == articleCourant.id)
+        {
+          articleCourant.stock += Caddie[i].stock;
+          setArticle(articleCourant.intitule, articleCourant.prix, articleCourant.stock , articleCourant.image);
+        }
+
+        Caddie[i].id = 0;
+
+        i++;
+      }
+
+      nbArticles = 0;
+    }
+  }
+  
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

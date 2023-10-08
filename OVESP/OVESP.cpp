@@ -107,6 +107,33 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         OVESP_Cancel(id, stock, reponse, conn);
     }
 
+    // ***** CANCEL_ALL ******************************************
+    if (strcmp(ptr,"CANCEL_ALL") == 0)
+    {
+        int nbArti = atoi(strtok(NULL,"#"));
+
+        if(nbArti == 0) sprintf(reponse, "CANCEL_ALL#ko");
+        else
+        {
+            char req[200] = "";
+            int i = 1;
+
+            strcat(req, strtok(NULL,"#"));
+
+            while(i < nbArti)
+            {
+                strcat(req, "#");
+                strcat(req, strtok(NULL,"#"));
+
+                i++;
+            }
+
+            //printf("%s\n", req);
+
+            OVESP_Cancel_All(req, nbArti, reponse, conn);
+        }
+    }
+
     return true;
 }
 
@@ -371,6 +398,35 @@ void OVESP_Cancel(int id, int quant, char* rep, MYSQL* connexion)
     {
         sprintf(rep,"CANCEL#-1");
     }
+}
+
+void OVESP_Cancel_All(char *requete, int nbArti, char* rep, MYSQL* connexion)
+{
+    int i = 0, id, stock;
+
+    char *ptr = strtok(requete,"&");
+    char idS[5];
+
+    strcpy(idS, ptr);
+    id = atoi(idS);
+    stock = atoi(strtok(NULL,"#"));
+
+    while(i < nbArti)
+    {
+        //printf("%d - %d\n",id, stock);
+
+        OVESP_Cancel(id, stock, rep, connexion);
+
+        if(i != nbArti-1)
+        {
+            strcpy(idS, strtok(NULL,"&"));
+            id = atoi(idS);
+            stock = atoi(strtok(NULL,"#"));
+        }
+        i++;
+    }
+
+    sprintf(rep, "CANCEL_ALL#ok");
 }
 
 //***** Gestion de l'état du protocole ******************************
