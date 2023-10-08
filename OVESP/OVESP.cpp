@@ -134,6 +134,33 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
         }
     }
 
+    // ***** CONFIRMER ******************************************
+    if (strcmp(ptr,"CONFIRMER") == 0)
+    {
+        int nbArti = atoi(strtok(NULL,"#"));
+
+        if(nbArti == 0) sprintf(reponse, "CONFIRMER#ko");
+        else
+        {
+            char req[1500] = "";
+            int i = 1;
+
+            strcat(req, strtok(NULL,"#"));
+
+            while(i < nbArti)
+            {
+                strcat(req, "#");
+                strcat(req, strtok(NULL,"#"));
+
+                i++;
+            }
+
+            //printf("%s\n", req);
+
+            OVESP_Confirmer(req, nbArti, reponse, conn);
+        }
+    }
+
     return true;
 }
 
@@ -427,6 +454,56 @@ void OVESP_Cancel_All(char *requete, int nbArti, char* rep, MYSQL* connexion)
     }
 
     sprintf(rep, "CANCEL_ALL#ok");
+}
+
+void OVESP_Confirmer(char *requete,int nbArti, char* rep, MYSQL* connexion)
+{
+    char reqSQL[1500];
+    MYSQL_RES  *resultat;
+    MYSQL_ROW  Tuple;
+
+    char table[20];
+
+    strcpy(table, "factures");
+
+    sprintf(reqSQL,"insert into %s (factureString, NbArticle) values ('%s', %d)", table, requete, nbArti);
+
+    if (mysql_query(connexion,reqSQL) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete INSERT réussie sur confirmer.\n");
+
+    sprintf(requete,"select max(idFacture) from %s;", table);
+
+    if (mysql_query(connexion,requete) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete SELECT réussie sur confirmer.\n");
+
+    // Affichage du Result Set
+
+    if ((resultat = mysql_store_result(connexion)) == NULL)
+    {
+        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    if((Tuple = mysql_fetch_row(resultat)) != NULL)
+    {
+        int idF = atoi(Tuple[0]);
+
+        sprintf(rep, "CONFIRMER#ok#%d", idF);
+    }
+    else
+    {
+        sprintf(rep, "CONFIRMER#-1");
+    }
 }
 
 //***** Gestion de l'état du protocole ******************************

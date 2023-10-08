@@ -11,6 +11,7 @@ void OVESP_Consult(int id, char* rep, MYSQL* connexion);
 void OVESP_Achat(int id, char* rep, int quant, MYSQL* connexion);
 void OVESP_Cancel(int id, int quant, char* rep, MYSQL* connexion);
 void OVESP_Cancel_All(char *requete,int nbArti, char* rep, MYSQL* connexion);
+void OVESP_Confirmer(char *requete,int nbArti, char* rep, MYSQL* connexion);
 void OVESP_Close();
 
 #endif

@@ -62,12 +62,17 @@ int main(int argc,char *argv[])
   //Creation d'une table utilisateurs
   printf("Creation de la table utilisateurs...\n");
   mysql_query(connexion,"drop table utilisateurs;"); // au cas ou elle existerait deja
-  mysql_query(connexion,"create table utilisateurs (login varchar(50), MDP varchar(50));");
+  mysql_query(connexion,"create table utilisateurs (login varchar(50) primary key, MDP varchar(50));");
 
   // Ajout de tuples dans la table utilisateurs
   printf("Ajout d'utilisateurs dans la table...\n");
   sprintf(requete,"insert into utilisateurs values ('%s','%s');", "Ahmed", "abc123");
   mysql_query(connexion,requete);
+
+  // Creation d'une table factures
+  printf("Creation de la table factures...\n");
+  mysql_query(connexion,"drop table factures;"); // au cas ou elle existerait deja
+  mysql_query(connexion,"create table factures (idFacture INT(4) auto_increment primary key, factureString varchar(1500), NbArticle INT(2));");
 
   // Deconnection de la BD
   mysql_close(connexion);
