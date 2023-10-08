@@ -47,6 +47,9 @@ public:
     //pour envoyer la requete consult au serveur
     void ConsultArticle(int Id);
 
+    //pour vider le panier
+    bool VidePanier();
+
 private slots:
     void on_pushButtonLogin_clicked();
     void on_pushButtonLogout_clicked();
