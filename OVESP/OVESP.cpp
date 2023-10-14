@@ -178,28 +178,17 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
     // ***** CONFIRMER ******************************************
     if (strcmp(ptr,"CONFIRMER") == 0)
     {
-        int nbArti = atoi(strtok(NULL,"#"));
+        int numFact = atoi(strtok(NULL,"#"));
+        char user[50];
 
-        if(nbArti == 0) sprintf(reponse, "CONFIRMER#ko");
-        else
-        {
-            char req[1500] = "";
-            int i = 1;
+        strcpy(user, strtok(NULL,"#"));
 
-            strcat(req, strtok(NULL,"#"));
+        //printf("%s\n", req);
 
-            while(i < nbArti)
-            {
-                strcat(req, "#");
-                strcat(req, strtok(NULL,"#"));
+        OVESP_Confirmer(numFact, conn); //confirme notre achat et creer facture definitive
 
-                i++;
-            }
+        sprintf(reponse,"CONFIRMER#%d", Caddie_Verification(user, conn));
 
-            //printf("%s\n", req);
-
-            OVESP_Confirmer(req, nbArti, reponse, conn);
-        }
     }
 
     return true;
@@ -379,7 +368,7 @@ int Caddie_Verification(const char* user, MYSQL* connexion)
                 exit(1);
             }
 
-            printf("Requete INSERT réussie sur login.\n");
+            printf("Requete INSERT réussie sur caddie.\n");
 
             sprintf(requete,"select max(idFacture) from %s;", table);
 
@@ -389,7 +378,7 @@ int Caddie_Verification(const char* user, MYSQL* connexion)
                 exit(1);
             }
 
-            printf("Requete SELECT réussie sur confirmer.\n");
+            printf("Requete SELECT réussie sur caddie.\n");
 
             // Affichage du Result Set
 
@@ -710,27 +699,15 @@ void OVESP_Supprime_ALL_Facture(int idFacture, MYSQL* connexion)
     printf("Requete DELETE pour ventes réussie.\n");
 }
 
-void OVESP_Confirmer(char *requete,int nbArti, char* rep, MYSQL* connexion)
+void OVESP_Confirmer(int idFacture, MYSQL* connexion)
 {
-    char reqSQL[1500];
-    MYSQL_RES  *resultat;
-    MYSQL_ROW  Tuple;
+    char requete[200];
 
     char table[20];
 
     strcpy(table, "factures");
 
-    sprintf(reqSQL,"insert into %s (factureString, NbArticle) values ('%s', %d)", table, requete, nbArti);
-
-    if (mysql_query(connexion,reqSQL) != 0)
-    {
-        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
-        exit(1);
-    }
-
-    printf("Requete INSERT réussie sur confirmer.\n");
-
-    sprintf(requete,"select max(idFacture) from %s;", table);
+    sprintf(requete,"update %s set dateFacture = curdate() where idFacture = %d;", table, idFacture);
 
     if (mysql_query(connexion,requete) != 0)
     {
@@ -738,26 +715,7 @@ void OVESP_Confirmer(char *requete,int nbArti, char* rep, MYSQL* connexion)
         exit(1);
     }
 
-    printf("Requete SELECT réussie sur confirmer.\n");
-
-    // Affichage du Result Set
-
-    if ((resultat = mysql_store_result(connexion)) == NULL)
-    {
-        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
-        exit(1);
-    }
-
-    if((Tuple = mysql_fetch_row(resultat)) != NULL)
-    {
-        int idF = atoi(Tuple[0]);
-
-        sprintf(rep, "CONFIRMER#ok#%d", idF);
-    }
-    else
-    {
-        sprintf(rep, "CONFIRMER#-1");
-    }
+    printf("Requete UPDATE pour facture réussie sur confirme.\n");
 }
 
 //***** Gestion de l'état du protocole ******************************

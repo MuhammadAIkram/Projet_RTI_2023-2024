@@ -15,7 +15,7 @@ void OVESP_Cancel_All(char *requete,int nbArti, char* rep, MYSQL* connexion);
 void OVESP_Ajout_Facture(int idFacture, int NV_Article, float montant, int idArticle, int quant, MYSQL* connexion);
 void OVESP_Supprime_Facture(int idFacture, float montant, int idArticle, MYSQL* connexion);
 void OVESP_Supprime_ALL_Facture(int idFacture, MYSQL* connexion);
-void OVESP_Confirmer(char *requete,int nbArti, char* rep, MYSQL* connexion);
+void OVESP_Confirmer(int idFacture, MYSQL* connexion);
 void OVESP_Close();
 
 #endif

@@ -622,46 +622,19 @@ void WindowClient::on_pushButtonViderPanier_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonPayer_clicked()
 {
-  char texte[1500];
-  sprintf(texte,"CONFIRMER#%d", nbArticles);
-  int nbEcrits;
-
-  int i = 0;
-
-  while(i < 10 && Caddie[i].id != 0)
+  if(nbArticles == 0)
   {
-    char str[100];
+    dialogueErreur("Payer", "Vous n'avez rien dans votre panier !");
 
-    strcat(texte, "#");
-
-    sprintf(str, "%d&%d&%.3f&%s", Caddie[i].id, Caddie[i].stock, Caddie[i].prix, Caddie[i].intitule);
-
-    strcat(texte, str);
-
-    i++;
+    return;
   }
 
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
+  //printf("\nNom: %s\n\n", getNom());
 
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[100];
-  int nbLus;
+  char texte[100], buffer[100];
+  sprintf(texte,"CONFIRMER#%d#%s", numFacture, getNom());
   
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-  
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
+  SendReceiveReq(texte, buffer);
 
   char *ptr = strtok(buffer,"#");
 
@@ -670,49 +643,33 @@ void WindowClient::on_pushButtonPayer_clicked()
     char reponse[20];
     strcpy(reponse,strtok(NULL,"#"));
 
-    if (strcmp(reponse,"ko") == 0) 
+    if (strcmp(reponse,"-1") == 0) 
     {
-      dialogueErreur("Payer", "Vous n'avez rien dans votre panier !");
+      dialogueErreur("Payer", "un problème est survenu lors de l'obtention de votre numéro de reçu, mais votre commande a été confirmée !");
     }
     else
     {
-      if (strcmp(reponse,"-1") == 0) 
+      //mise a jour du panier
+
+      videTablePanier();
+
+      totalCaddie = 0.0;
+      setTotal(-1.0);
+
+      int i = 0;
+
+      while(i < nbArticles)
       {
-        dialogueErreur("Payer", "un problème est survenu lors de l'obtention de votre numéro de reçu, mais votre commande a été confirmée !");
+        Caddie[i].id = 0;
+
+        i++;
       }
-      else
-      {
-        //mise a jour du panier
 
-        videTablePanier();
+      nbArticles = 0;
 
-        totalCaddie = 0.0;
-        setTotal(-1.0);
+      numFacture = atoi(reponse); //le nouveau numero de facture
 
-        int i = 0;
-
-        while(i < nbArticles)
-        {
-          if(Caddie[i].id == articleCourant.id)
-          {
-            articleCourant.stock += Caddie[i].stock;
-            setArticle(articleCourant.intitule, articleCourant.prix, articleCourant.stock , articleCourant.image);
-          }
-
-          Caddie[i].id = 0;
-
-          i++;
-        }
-
-        nbArticles = 0;
-
-        char numFacture[50]; 
-
-        strcpy(numFacture, "Achat confirmer! Numero de facture : ");
-        strcat(numFacture, strtok(NULL,"#"));
-
-        dialogueMessage("Payer", numFacture);
-      }
+      dialogueMessage("Payer", "Achat confirmer!");
     }
   }
 }
