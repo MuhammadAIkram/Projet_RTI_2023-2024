@@ -59,20 +59,25 @@ int main(int argc,char *argv[])
 	  mysql_query(connexion,requete);
   }
 
-  //Creation d'une table utilisateurs
-  printf("Creation de la table utilisateurs...\n");
-  mysql_query(connexion,"drop table utilisateurs;"); // au cas ou elle existerait deja
-  mysql_query(connexion,"create table utilisateurs (login varchar(50) primary key, MDP varchar(50));");
+  //Creation d'une table clients
+  printf("Creation de la table clients...\n");
+  mysql_query(connexion,"drop table clients;"); // au cas ou elle existerait deja
+  mysql_query(connexion,"create table clients (id INT(4) auto_increment primary key, login varchar(50), password varchar(50));");
 
-  // Ajout de tuples dans la table utilisateurs
-  printf("Ajout d'utilisateurs dans la table...\n");
-  sprintf(requete,"insert into utilisateurs values ('%s','%s');", "Ahmed", "abc123");
+  // Ajout de tuples dans la table clients
+  printf("Ajout d'clients dans la table...\n");
+  sprintf(requete,"insert into clients (login, password) values ('%s','%s');", "Ahmed", "abc123");
   mysql_query(connexion,requete);
 
   // Creation d'une table factures
   printf("Creation de la table factures...\n");
   mysql_query(connexion,"drop table factures;"); // au cas ou elle existerait deja
-  mysql_query(connexion,"create table factures (idFacture INT(4) auto_increment primary key, factureString varchar(1500), NbArticle INT(2));");
+  mysql_query(connexion,"create table factures (idFacture INT(4) auto_increment primary key, idClient INT(4), dateFacture DATE, montant FLOAT, paye INT);");
+
+  // Creation d'une table ventes
+  printf("Creation de la table ventes...\n");
+  mysql_query(connexion,"drop table ventes;"); // au cas ou elle existerait deja
+  mysql_query(connexion,"create table ventes (idFacture INT(4), idArticle INT(4), quantite INT);");
 
   // Deconnection de la BD
   mysql_close(connexion);

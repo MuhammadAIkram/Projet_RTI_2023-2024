@@ -23,9 +23,11 @@ typedef struct
 
 ARTICLE articleCourant;
 ARTICLE Caddie[10];
-int nbArticles = 0;
+int nbArticles = 0, numFacture = 0;
 float totalCaddie = 0.0;
 bool logged = false;
+
+void SendReceiveReq(char* requete, char *buffer);
 
 #include "../LibSockets/TCP.h"
 
@@ -316,31 +318,10 @@ void WindowClient::on_pushButtonLogin_clicked()
     return;
   }
 
-  char texte[100];
+  char texte[100], buffer[100];
   sprintf(texte,"LOGIN#%s#%s#%d", getNom(), getMotDePasse(), isNouveauClientChecked());
-  int nbEcrits;
-
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
-
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[100];
-  int nbLus;
   
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-  
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
+  SendReceiveReq(texte, buffer);
 
   char *ptr = strtok(buffer,"#");
 
@@ -359,6 +340,8 @@ void WindowClient::on_pushButtonLogin_clicked()
 
       logged = true;
 
+      numFacture = atoi(strtok(NULL,"#"));
+
       ConsultArticle(1);
     }
     else
@@ -374,31 +357,10 @@ void WindowClient::on_pushButtonLogin_clicked()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void WindowClient::on_pushButtonLogout_clicked()
 {
-  char texte[50];
+  char texte[50], buffer[50];
   sprintf(texte,"LOGOUT");
-  int nbEcrits;
 
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
-
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[50];
-  int nbLus;
-  
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-  
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
+  SendReceiveReq(texte, buffer);
 
   char *ptr = strtok(buffer,"#");
 
@@ -458,31 +420,10 @@ void WindowClient::on_pushButtonAcheter_clicked()
     return;
   }
 
-  char texte[100];
+  char texte[100], buffer[100];
   sprintf(texte,"ACHAT#%d#%d", articleCourant.id, getQuantite());
-  int nbEcrits;
-
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
-
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[100];
-  int nbLus;
   
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-  
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
+  SendReceiveReq(texte, buffer);
 
   char *ptr = strtok(buffer,"#");
 
@@ -510,7 +451,7 @@ void WindowClient::on_pushButtonAcheter_clicked()
 
         //pour le panier
 
-        if(i == 10)
+        if(i == 10) //si article n'existe pas dans le panier
         {
           i = 0;
 
@@ -528,6 +469,11 @@ void WindowClient::on_pushButtonAcheter_clicked()
 
           setTotal(totalCaddie);
 
+          //mettre a jour le facture dans le BD
+          sprintf(texte,"UPDATE_CAD#%d#0#0#%.3f#%d#%d", numFacture, totalCaddie, articleCourant.id, getQuantite());
+  
+          SendReceiveReq(texte, buffer);
+
           nbArticles++;
         }
         else
@@ -535,6 +481,7 @@ void WindowClient::on_pushButtonAcheter_clicked()
           videTablePanier();
 
           Caddie[i].stock = Caddie[i].stock + getQuantite();
+          int newStock = Caddie[i].stock;
           totalCaddie = 0.0;
           setTotal(-1.0);
 
@@ -549,6 +496,11 @@ void WindowClient::on_pushButtonAcheter_clicked()
           }
 
           setTotal(totalCaddie);
+
+          //mettre a jour le facture dans le BD
+          sprintf(texte,"UPDATE_CAD#%d#0#1#%.3f#%d#%d", numFacture, totalCaddie, articleCourant.id, newStock);
+  
+          SendReceiveReq(texte, buffer);
         }
       }
     }
@@ -567,31 +519,12 @@ void WindowClient::on_pushButtonSupprimer_clicked()
   if(ind == -1) dialogueErreur("PANIER", "AUCUN ARTICLE SELECTIONNE");
   else
   {
-    char texte[100];
+    char texte[100],buffer[100];
     sprintf(texte,"CANCEL#%d#%d", Caddie[ind].id, Caddie[ind].stock);
-    int nbEcrits;
-
-    if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-    {
-      perror("Erreur de Send");
-      exit(1);
-    }
-
-    printf("NbEcrits = %d\n",nbEcrits);
-    printf("Ecrit = --%s--\n",texte);
-
-    char buffer[100];
-    int nbLus;
     
-    if ((nbLus = Receive(sClient,buffer)) < 0)
-    {
-        perror("Erreur de Receive");
-        exit(1);
-    }
-    
-    printf("NbLus = %d\n",nbLus);
-    buffer[nbLus] = 0;
-    printf("Lu = --%s--\n",buffer);
+    int idArticle = Caddie[ind].id;
+
+    SendReceiveReq(texte, buffer);
 
     char *ptr = strtok(buffer,"#");
 
@@ -653,6 +586,13 @@ void WindowClient::on_pushButtonSupprimer_clicked()
         }
 
         setTotal(totalCaddie);
+
+        char requeteCad[200], buf[50];
+
+        //mettre a jour le facture dans le BD
+        sprintf(requeteCad,"UPDATE_CAD#%d#1#%.3f#%d", numFacture, totalCaddie, idArticle);
+
+        SendReceiveReq(requeteCad, buf);
       }
       else
       {
@@ -670,6 +610,13 @@ void WindowClient::on_pushButtonViderPanier_clicked()
   check = VidePanier();
   
   if(check == true) printf("check vide\n");
+
+  char requeteCad[200], buf[50];
+
+  //mettre a jour le facture dans le BD
+  sprintf(requeteCad,"DELETE_CAD#%d", numFacture);
+
+  SendReceiveReq(requeteCad, buf);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -787,31 +734,10 @@ int WindowClient::getSocket()
 
 void WindowClient::ConsultArticle(int Id)
 {
-  char texte[50];
+  char texte[50], buffer[100];
   sprintf(texte,"CONSULT#%d", Id);
-  int nbEcrits;
 
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
-
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[100];
-  int nbLus;
-  
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
+  SendReceiveReq(texte, buffer);
 
   char *ptr = strtok(buffer,"#");
 
@@ -848,9 +774,8 @@ void WindowClient::ConsultArticle(int Id)
 
 bool WindowClient::VidePanier()
 {
-  char texte[200];
+  char texte[200], buffer[100];
   sprintf(texte,"CANCEL_ALL#%d", nbArticles);
-  int nbEcrits;
 
   int i = 0;
 
@@ -866,29 +791,8 @@ bool WindowClient::VidePanier()
 
     i++;
   }
-
-  if ((nbEcrits = Send(sClient,texte,strlen(texte))) == -1)
-  {
-    perror("Erreur de Send");
-    exit(1);
-  }
-
-  printf("NbEcrits = %d\n",nbEcrits);
-  printf("Ecrit = --%s--\n",texte);
-
-  char buffer[100];
-  int nbLus;
   
-  if ((nbLus = Receive(sClient,buffer)) < 0)
-  {
-      perror("Erreur de Receive");
-      exit(1);
-  }
-  
-  printf("NbLus = %d\n",nbLus);
-  buffer[nbLus] = 0;
-  printf("Lu = --%s--\n",buffer);
-  
+  SendReceiveReq(texte, buffer);
   
   char *ptr = strtok(buffer,"#");
 
@@ -930,4 +834,32 @@ bool WindowClient::VidePanier()
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SendReceiveReq(char* requete, char *buffer)
+{
+  int nbEcrits;
+
+  if ((nbEcrits = Send(w->getSocket(),requete,strlen(requete))) == -1)
+  {
+    perror("Erreur de Send");
+    exit(1);
+  }
+
+  printf("NbEcrits = %d\n",nbEcrits);
+  printf("Ecrit = --%s--\n",requete);
+
+  int nbLus;
+  
+  if ((nbLus = Receive(w->getSocket(),buffer)) < 0)
+  {
+      perror("Erreur de Receive");
+      exit(1);
+  }
+  
+  printf("NbLus = %d\n",nbLus);
+  buffer[nbLus] = 0;
+  printf("Lu = --%s--\n",buffer);
 }
