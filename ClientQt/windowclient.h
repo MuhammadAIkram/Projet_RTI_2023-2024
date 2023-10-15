@@ -50,6 +50,9 @@ public:
     //pour vider le panier
     bool VidePanier();
 
+    //pour recuperer le caddie dans le BD
+    void getCaddie();
+
 private slots:
     void on_pushButtonLogin_clicked();
     void on_pushButtonLogout_clicked();

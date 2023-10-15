@@ -16,6 +16,8 @@ void OVESP_Ajout_Facture(int idFacture, int NV_Article, float montant, int idArt
 void OVESP_Supprime_Facture(int idFacture, float montant, int idArticle, MYSQL* connexion);
 void OVESP_Supprime_ALL_Facture(int idFacture, MYSQL* connexion);
 void OVESP_Confirmer(int idFacture, MYSQL* connexion);
+void OVESP_Caddie(int idFacture, char* rep, MYSQL* connexion);
+void Verifie_Vente(int idFacture, int idArticle, char* reqReponse,MYSQL* connexion);
 void OVESP_Close();
 
 #endif

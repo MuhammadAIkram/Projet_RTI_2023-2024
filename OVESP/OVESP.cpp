@@ -191,6 +191,14 @@ bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn)
 
     }
 
+    // ***** CADDIE ******************************************
+    if (strcmp(ptr,"CADDIE") == 0)
+    {
+        int numFact = atoi(strtok(NULL,"#"));
+
+        OVESP_Caddie(numFact, reponse, conn);
+    }
+
     return true;
 }
 
@@ -419,7 +427,6 @@ void OVESP_Consult(int id, char* rep, MYSQL* connexion)
     strcpy(table, "articles");
 
     sprintf(requete,"select * from %s where id = %d;", table, id);
-
 
     if (mysql_query(connexion,requete) != 0)
     {
@@ -716,6 +723,197 @@ void OVESP_Confirmer(int idFacture, MYSQL* connexion)
     }
 
     printf("Requete UPDATE pour facture réussie sur confirme.\n");
+}
+
+void OVESP_Caddie(int idFacture, char* rep, MYSQL* connexion)
+{
+    char requete[200];
+    MYSQL_RES  *resultat;
+    MYSQL_ROW  Tuple;
+
+    char table[20];
+
+    strcpy(table, "ventes");
+
+    sprintf(requete,"select * from %s where idFacture = %d;", table, idFacture);
+
+    if (mysql_query(connexion,requete) != 0)
+    {
+        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    printf("Requete SELECT réussie sur Caddie.\n");
+
+    // Affichage du Result Set
+
+    if ((resultat = mysql_store_result(connexion)) == NULL)
+    {
+        fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+        exit(1);
+    }
+
+    // Preparation de la reponse
+
+    if((Tuple = mysql_fetch_row(resultat)) == NULL)
+    {
+        sprintf(rep,"CADDIE#0");
+    }
+    else
+    {
+        int nbrArt = 1;
+        char strReq[200];
+
+        strcpy(strReq, "");
+
+        MYSQL_RES  *resultat2;
+        MYSQL_ROW  Tuple2;
+
+        char tableArt[20];
+
+        //pour recuperer le montant du facture
+
+        float montant;
+
+        strcpy(tableArt, "factures");
+
+        sprintf(requete,"select montant from %s where idFacture = %d;", tableArt, idFacture);
+
+        if (mysql_query(connexion,requete) != 0)
+        {
+            fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+            exit(1);
+        }
+
+        printf("Requete SELECT réussie sur Caddie facture.\n");
+
+        // Affichage du Result Set
+
+        if ((resultat2 = mysql_store_result(connexion)) == NULL)
+        {
+            fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+            exit(1);
+        }
+
+        if((Tuple2 = mysql_fetch_row(resultat2)) != NULL)
+        {
+            setlocale(LC_NUMERIC, "C");
+            montant = atof(Tuple2[0]);
+        }
+
+        //pour le caddie
+        strcpy(tableArt, "articles");
+
+        sprintf(requete,"select * from %s where id = %s;", tableArt, Tuple[1]);
+
+        if (mysql_query(connexion,requete) != 0)
+        {
+            fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+            exit(1);
+        }
+
+        printf("Requete SELECT réussie sur Caddie article.\n");
+
+        // Affichage du Result Set
+
+        if ((resultat2 = mysql_store_result(connexion)) == NULL)
+        {
+            fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+            exit(1);
+        }
+
+        // Preparation de la reponse
+        if((Tuple2 = mysql_fetch_row(resultat2)) != NULL)
+        {
+            if(atoi(Tuple2[3]) >= atoi(Tuple[2])) //si le stock c'est bon
+            {
+                int newStock = atoi(Tuple2[3]) - atoi(Tuple[2]);
+
+                sprintf(requete,"update %s set stock = %d where id = %d;", tableArt, newStock, atoi(Tuple[1]));
+
+                if (mysql_query(connexion,requete) != 0)
+                {
+                    fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+                    exit(1);
+                }
+
+                printf("Requete UPDATE réussie sur caddie.\n");
+
+                char ResultCaddie[50];
+
+                strcat(strReq, "#");
+                sprintf(ResultCaddie,"%s$%s$%s$%s", Tuple2[0], Tuple2[1], Tuple[2], Tuple2[2]);
+                strcat(strReq, ResultCaddie);
+            }
+            else // si le stock n'est pas bon
+            {
+                setlocale(LC_NUMERIC, "C");
+                montant = montant - (atof(Tuple2[2]) * atoi(Tuple[2]));
+                OVESP_Supprime_Facture(idFacture, montant, atoi(Tuple2[0]), connexion);
+                nbrArt--;
+            }
+        }
+
+        while((Tuple = mysql_fetch_row(resultat)) != NULL)
+        {
+            nbrArt++;
+
+            //pour le caddie
+            strcpy(tableArt, "articles");
+
+            sprintf(requete,"select * from %s where id = %s;", tableArt, Tuple[1]);
+
+            if (mysql_query(connexion,requete) != 0)
+            {
+                fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+                exit(1);
+            }
+
+            printf("Requete SELECT réussie sur Caddie article.\n");
+
+            // Affichage du Result Set
+
+            if ((resultat2 = mysql_store_result(connexion)) == NULL)
+            {
+                fprintf(stderr, "Erreur de mysql_store_result: %s\n",mysql_error(connexion));
+                exit(1);
+            }
+
+            // Preparation de la reponse
+            if((Tuple2 = mysql_fetch_row(resultat2)) != NULL)
+            {
+                if(atoi(Tuple2[3]) >= atoi(Tuple[2])) //si le stock c'est bon
+                {
+                    int newStock = atoi(Tuple2[3]) - atoi(Tuple[2]);
+
+                    sprintf(requete,"update %s set stock = %d where id = %d;", tableArt, newStock, atoi(Tuple[1]));
+
+                    if (mysql_query(connexion,requete) != 0)
+                    {
+                        fprintf(stderr, "Erreur de mysql_query: %s\n",mysql_error(connexion));
+                        exit(1);
+                    }
+
+                    printf("Requete UPDATE réussie sur caddie.\n");
+
+                    char ResultCaddie[50];
+
+                    strcat(strReq, "#");
+                    sprintf(ResultCaddie,"%s$%s$%s$%s", Tuple2[0], Tuple2[1], Tuple[2], Tuple2[2]);
+                    strcat(strReq, ResultCaddie);
+                }
+                else // si le stock n'est pas bon
+                {
+                    setlocale(LC_NUMERIC, "C");
+                    montant = montant - (atof(Tuple2[2]) * atoi(Tuple[2]));
+                    OVESP_Supprime_Facture(idFacture, montant, atoi(Tuple2[0]), connexion);
+                    nbrArt--;
+                }
+            }
+        }
+
+        sprintf(rep,"CADDIE#%d%s", nbrArt, strReq);
+    }
 }
 
 //***** Gestion de l'état du protocole ******************************

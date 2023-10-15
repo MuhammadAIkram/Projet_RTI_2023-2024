@@ -342,6 +342,8 @@ void WindowClient::on_pushButtonLogin_clicked()
 
       numFacture = atoi(strtok(NULL,"#"));
 
+      getCaddie();
+
       ConsultArticle(1);
     }
     else
@@ -731,7 +733,7 @@ void WindowClient::ConsultArticle(int Id)
 
 bool WindowClient::VidePanier()
 {
-  char texte[200], buffer[100];
+  char texte[300], buffer[300];
   sprintf(texte,"CANCEL_ALL#%d", nbArticles);
 
   int i = 0;
@@ -791,6 +793,44 @@ bool WindowClient::VidePanier()
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WindowClient::getCaddie()
+{
+  char texte[50], buffer[300];
+  sprintf(texte,"CADDIE#%d", numFacture);
+
+  SendReceiveReq(texte, buffer);
+
+  char *ptr = strtok(buffer,"#");
+
+  if (strcmp(ptr,"CADDIE") == 0) 
+  {
+    nbArticles = atoi(strtok(NULL,"#"));
+
+    if(nbArticles > 0)
+    {
+      int i = 0;
+
+      while(i < nbArticles)
+      {
+        Caddie[i].id = atoi(strtok(NULL,"$"));
+        strcpy(Caddie[i].intitule,strtok(NULL,"$"));
+        Caddie[i].stock = atoi(strtok(NULL,"$"));
+        setlocale(LC_NUMERIC, "C");
+        Caddie[i].prix = atof(strtok(NULL,"#"));
+
+        ajouteArticleTablePanier(Caddie[i].intitule, Caddie[i].prix, Caddie[i].stock);
+        totalCaddie = totalCaddie + (Caddie[i].stock*Caddie[i].prix);
+
+        i++;
+      }
+
+      setTotal(totalCaddie);
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
