@@ -4,9 +4,11 @@
 #define NB_MAX_CLIENTS 100
 
 bool OVESP(char* requete, char* reponse,int socket, MYSQL* conn);
+
 int OVESP_Login(const char* user,const char* password,MYSQL* connexion);
 int OVESP_NouveauLogin(const char* user,const char* password,MYSQL* connexion);
 int Caddie_Verification(const char* user, MYSQL* connexion);
+
 void OVESP_Logout(int sock);
 void OVESP_Consult(int id, char* rep, MYSQL* connexion);
 void OVESP_Achat(int id, char* rep, int quant, MYSQL* connexion);
@@ -17,7 +19,6 @@ void OVESP_Supprime_Facture(int idFacture, float montant, int idArticle, MYSQL* 
 void OVESP_Supprime_ALL_Facture(int idFacture, MYSQL* connexion);
 void OVESP_Confirmer(int idFacture, MYSQL* connexion);
 void OVESP_Caddie(int idFacture, char* rep, MYSQL* connexion);
-void Verifie_Vente(int idFacture, int idArticle, char* reqReponse,MYSQL* connexion);
 void OVESP_Close();
 
 #endif
