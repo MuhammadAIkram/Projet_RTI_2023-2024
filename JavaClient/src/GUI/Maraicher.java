@@ -1,5 +1,6 @@
 package GUI;
 
+import Controller.Controller;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -30,7 +31,7 @@ public class Maraicher extends JFrame{
     private JButton buttonSupprimer;
     private JButton buttonVider;
     private JButton confirmerAchatButton;
-    private JTextField textField1;
+    private JTextField textFieldPrixTotal;
     private JPanel MainPanel;
     public JTable tableArticles;
 
@@ -39,13 +40,103 @@ public class Maraicher extends JFrame{
         setTitle("Le Maraicher en ligne");
         setContentPane(MainPanel);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        setLocationRelativeTo(null);
 
         tableArticles = new JTable();
         DefaultTableModel tableModelEmp = (DefaultTableModel) tableArticles.getModel();
         String[] nomsColonnes = { "Article", "Prix a l'unite", "Quantite"};
         tableModelEmp.setColumnIdentifiers(nomsColonnes);
         JscrollPanier.setViewportView(tableArticles);
+
+        getTextFieldNomArticle().setEditable(false);
+        getTextFieldPrixUnite().setEditable(false);
+        getTextFieldStock().setEditable(false);
+
+        getTextFieldPrixTotal().setEditable(false);
+    }
+
+    public void setControleur(Controller c)
+    {
+        buttonLogin.addActionListener(c);
+        buttonLogout.addActionListener(c);
+
+        this.addWindowListener(c);
+    }
+
+    public JTextField getTextFieldNom() {
+        return textFieldNom;
+    }
+
+    public JPasswordField getPasswordField() {
+        return passwordField;
+    }
+
+    public JButton getButtonLogin() {
+        return buttonLogin;
+    }
+
+    public JButton getButtonLogout() {
+        return buttonLogout;
+    }
+
+    public JCheckBox getCheckBoxNvClient() {
+        return checkBoxNvClient;
+    }
+
+    public JLabel getPhotoArticle() {
+        return PhotoArticle;
+    }
+
+    public JTextField getTextFieldNomArticle() {
+        return textFieldNomArticle;
+    }
+
+    public JTextField getTextFieldPrixUnite() {
+        return textFieldPrixUnite;
+    }
+
+    public JTextField getTextFieldStock() {
+        return textFieldStock;
+    }
+
+    public JSpinner getSpinnerQantite() {
+        return spinnerQantite;
+    }
+
+    public JButton getButtonAvant() {
+        return buttonAvant;
+    }
+
+    public JButton getButtonSuivant() {
+        return buttonSuivant;
+    }
+
+    public JButton getButtonAchat() {
+        return buttonAchat;
+    }
+
+    public JTextPane getTextPanePublicte() {
+        return textPanePublicte;
+    }
+
+    public JScrollPane getJscrollPanier() {
+        return JscrollPanier;
+    }
+
+    public JButton getButtonSupprimer() {
+        return buttonSupprimer;
+    }
+
+    public JButton getButtonVider() {
+        return buttonVider;
+    }
+
+    public JButton getConfirmerAchatButton() {
+        return confirmerAchatButton;
+    }
+
+    public JTextField getTextFieldPrixTotal() {
+        return textFieldPrixTotal;
     }
 
     public static void main(String[] args)
