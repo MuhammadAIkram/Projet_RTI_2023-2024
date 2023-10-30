@@ -61,6 +61,10 @@ public class Maraicher extends JFrame{
         buttonLogout.addActionListener(c);
         buttonAvant.addActionListener(c);
         buttonSuivant.addActionListener(c);
+        buttonAchat.addActionListener(c);
+        buttonSupprimer.addActionListener(c);
+        buttonVider.addActionListener(c);
+        confirmerAchatButton.addActionListener(c);
 
         this.addWindowListener(c);
     }
@@ -139,6 +143,10 @@ public class Maraicher extends JFrame{
 
     public JTextField getTextFieldPrixTotal() {
         return textFieldPrixTotal;
+    }
+
+    public JTable getTableArticles() {
+        return tableArticles;
     }
 
     public static void main(String[] args)

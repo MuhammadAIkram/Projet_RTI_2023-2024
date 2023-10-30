@@ -7,6 +7,7 @@ import Modele.TCP;
 
 import javax.security.auth.callback.TextInputCallback;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -14,6 +15,8 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.Socket;
 
+import java.util.LinkedList;
+import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -23,8 +26,11 @@ public class Controller extends WindowAdapter implements ActionListener {
     private Socket csocket;
     private boolean logged;
     private int numFacture;
+    private int nbArticles;
+    private float totalCaddie;
 
     private Article articleCourant;
+    private LinkedList<Article> Caddie;
 
     private TCP tcp;
 
@@ -33,6 +39,12 @@ public class Controller extends WindowAdapter implements ActionListener {
         this.WindowPortIp = WindowPortIp;
 
         tcp = new TCP();
+
+        numFacture = 0;
+        nbArticles = 0;
+        totalCaddie = 0.0F;
+
+        Caddie = new LinkedList<>();
     }
 
     @Override
@@ -51,6 +63,18 @@ public class Controller extends WindowAdapter implements ActionListener {
         }
         if(e.getSource() == maraicherWindow.getButtonSuivant()) {
             onSuivante();
+        }
+        if(e.getSource() == maraicherWindow.getButtonAchat()) {
+            onAchat();
+        }
+        if(e.getSource() == maraicherWindow.getButtonSupprimer()) {
+            onSupprimer();
+        }
+        if(e.getSource() == maraicherWindow.getButtonVider()) {
+            onVider();
+        }
+        if(e.getSource() == maraicherWindow.getConfirmerAchatButton()) {
+            onConfirme();
         }
     }
 
@@ -245,6 +269,122 @@ public class Controller extends WindowAdapter implements ActionListener {
         catch (Exception exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void onAchat() {
+        try {
+            int stockSpin = (int) maraicherWindow.getSpinnerQantite().getValue();
+
+            if(stockSpin <= 0)
+                throw new Exception("Veuillez sélectionner une valeur supérieure à 0");
+
+            int i = 0;
+
+            for (Article art: Caddie) {
+                if(art.getId() == articleCourant.getId())
+                {
+                    break;
+                }
+
+                i++;
+            }
+
+            if(Caddie.size() == i) i = 10;
+
+            System.out.println(i);
+
+            if(nbArticles == 10 && i == 10)
+                throw new Exception("votre panier est plein, merci d'acheter les articles ou de supprimer un article du panier !");
+
+            String Requete = "ACHAT#" + articleCourant.getId() + "#" + stockSpin;
+
+            System.out.println(Requete);
+
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("ACHAT"))
+            {
+                if(!tokens[1].equals("-1"))
+                {
+                    if(tokens[2].equals("0")) throw new Exception("stock insuffisant!");
+                    else
+                    {
+                        articleCourant.setStock(articleCourant.getStock() - stockSpin);
+
+                        maraicherWindow.getTextFieldStock().setText(String.valueOf(articleCourant.getStock()));
+
+                        if(i == 10)
+                        {
+                            Caddie.add(new Article(articleCourant.getId(), articleCourant.getIntitule(), articleCourant.getPrix(), stockSpin, articleCourant.getImage()));
+
+                            totalCaddie += (stockSpin*articleCourant.getPrix());
+
+                            maraicherWindow.getTextFieldPrixTotal().setText(String.valueOf(totalCaddie));
+
+                            DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
+
+                            Vector ligne = new Vector();
+                            ligne.add(articleCourant.getIntitule());
+                            ligne.add(articleCourant.getPrix());
+                            ligne.add(stockSpin);
+                            modelArticles.addRow(ligne);
+
+                            Requete = "UPDATE_CAD#" + numFacture + "#0#0#" + totalCaddie + "#" + articleCourant.getId() + "#" + stockSpin;
+
+                            System.out.println(Requete);
+
+                            Reponse = SendRec(Requete);
+
+                            System.out.println(Reponse);
+
+                            nbArticles++;
+                        }
+                        else
+                        {
+                            Caddie.get(i).setStock(Caddie.get(i).getStock() + stockSpin);
+
+                            totalCaddie = 0.0F;
+
+                            for (Article art: Caddie) {
+                                totalCaddie += (art.getPrix()*art.getStock());
+                            }
+
+                            maraicherWindow.getTextFieldPrixTotal().setText(String.valueOf(totalCaddie));
+
+                            DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
+
+                            modelArticles.setValueAt(Caddie.get(i).getStock(), i, 2);
+
+                            Requete = "UPDATE_CAD#" + numFacture + "#0#0#" + totalCaddie + "#" + articleCourant.getId() + "#" + stockSpin;
+
+                            System.out.println(Requete);
+
+                            Reponse = SendRec(Requete);
+
+                            System.out.println(Reponse);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Achat", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onSupprimer() {
+    }
+
+    private void onVider() {
+    }
+
+    private void onConfirme() {
     }
 
     //----------------------------------------------------------------------------------
