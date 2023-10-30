@@ -59,6 +59,8 @@ public class Maraicher extends JFrame{
     {
         buttonLogin.addActionListener(c);
         buttonLogout.addActionListener(c);
+        buttonAvant.addActionListener(c);
+        buttonSuivant.addActionListener(c);
 
         this.addWindowListener(c);
     }

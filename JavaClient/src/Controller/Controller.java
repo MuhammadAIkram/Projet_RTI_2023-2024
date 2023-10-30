@@ -2,6 +2,7 @@ package Controller;
 
 import GUI.IpPortWIndow;
 import GUI.Maraicher;
+import Modele.Article;
 import Modele.TCP;
 
 import javax.security.auth.callback.TextInputCallback;
@@ -20,6 +21,10 @@ public class Controller extends WindowAdapter implements ActionListener {
     private IpPortWIndow WindowPortIp;
     private Maraicher maraicherWindow;
     private Socket csocket;
+    private boolean logged;
+    private int numFacture;
+
+    private Article articleCourant;
 
     private TCP tcp;
 
@@ -41,6 +46,12 @@ public class Controller extends WindowAdapter implements ActionListener {
         if(e.getSource() == maraicherWindow.getButtonLogin()) {
             onLogin();
         }
+        if(e.getSource() == maraicherWindow.getButtonAvant()) {
+            onAvant();
+        }
+        if(e.getSource() == maraicherWindow.getButtonSuivant()) {
+            onSuivante();
+        }
     }
 
     @Override
@@ -52,6 +63,8 @@ public class Controller extends WindowAdapter implements ActionListener {
         int ret = JOptionPane.showConfirmDialog(null,"Êtes-vous certain de vouloir quitter ?");
         if (ret == JOptionPane.YES_OPTION)
         {
+            if(logged) onLogout();
+
             if(csocket != null)
             {
                 try
@@ -92,6 +105,8 @@ public class Controller extends WindowAdapter implements ActionListener {
 
             csocket = tcp.ClientSocket(ipS,PortS);
 
+            JOptionPane.showMessageDialog(null, "Vous êtes connecté au serveur !", "Connexion", JOptionPane.INFORMATION_MESSAGE);
+
             maraicherWindow = new Maraicher();
             maraicherWindow.setControleur(this);
             maraicherWindow.setVisible(true);
@@ -119,7 +134,23 @@ public class Controller extends WindowAdapter implements ActionListener {
 
             System.out.println(Reponse);
 
-            PasLogger();
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("LOGOUT"))
+            {
+                if(tokens[1].equals("ok"))
+                {
+                    //doit ajouter verification du panier ici
+
+                    JOptionPane.showMessageDialog(null, "BYE BYE ;)", "Logout", JOptionPane.INFORMATION_MESSAGE);
+
+                    PasLogger();
+
+                    logged = false;
+                }
+            }
         }
         catch (Exception exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -141,7 +172,75 @@ public class Controller extends WindowAdapter implements ActionListener {
 
             System.out.println(Reponse);
 
-            Logger();
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("LOGIN"))
+            {
+                if(tokens[1].equals("ok"))
+                {
+                    if(maraicherWindow.getCheckBoxNvClient().isSelected())
+                        JOptionPane.showMessageDialog(null, "Vous avez été inscrit avec succès", "Login", JOptionPane.INFORMATION_MESSAGE);
+
+                    JOptionPane.showMessageDialog(null, "Vous êtes connecté avec succès", "Login", JOptionPane.INFORMATION_MESSAGE);
+
+                    Logger();
+
+                    logged = true;
+
+                    numFacture = Integer.parseInt(tokens[2]);
+
+                    System.out.println("Numero de facture: " + numFacture);
+
+                    ConsultArticle(1);
+                }
+                else
+                    JOptionPane.showMessageDialog(null, tokens[2], "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onAvant() {
+        ConsultArticle(articleCourant.getId() - 1);
+    }
+
+    private void onSuivante(){
+        ConsultArticle(articleCourant.getId() + 1);
+    }
+
+    private void ConsultArticle(int id)
+    {
+        String Requete = "CONSULT#" + id;
+
+        System.out.println(Requete);
+
+        try {
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("CONSULT"))
+            {
+                if(!tokens[1].equals("-1"))
+                {
+                    String intitule = tokens[2];
+                    int stock = Integer.parseInt(tokens[3]);
+                    float prix = Float.parseFloat(tokens[4]);
+                    String image = tokens[5];
+
+                    setArticle(intitule, prix, stock , image);
+
+                    articleCourant = new Article(Integer.parseInt(tokens[1]), intitule, prix, stock, image);
+                }
+            }
         }
         catch (Exception exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -149,7 +248,7 @@ public class Controller extends WindowAdapter implements ActionListener {
     }
 
     //----------------------------------------------------------------------------------
-    //---------		Methodes utile
+    //---------		Methodes outil
     //----------------------------------------------------------------------------------
 
     private String SendRec(String Requete) throws Exception {
@@ -162,6 +261,17 @@ public class Controller extends WindowAdapter implements ActionListener {
         if(Reponse == null) throw new Exception("Erreur Receive!");
 
         return Reponse;
+    }
+
+    private void setArticle(String intitule, float prix, int stock, String image)
+    {
+        maraicherWindow.getTextFieldNomArticle().setText(intitule);
+        maraicherWindow.getTextFieldStock().setText(String.valueOf(stock));
+        maraicherWindow.getTextFieldPrixUnite().setText(String.valueOf(prix));
+
+        String filepath = "./images/" + image;
+        ImageIcon imageIcon = new ImageIcon(filepath);
+        maraicherWindow.getPhotoArticle().setIcon(imageIcon);
     }
 
     //----------------------------------------------------------------------------------
@@ -184,6 +294,11 @@ public class Controller extends WindowAdapter implements ActionListener {
         maraicherWindow.getTextFieldNom().setEnabled(true);
         maraicherWindow.getPasswordField().setEnabled(true);
         maraicherWindow.getCheckBoxNvClient().setEnabled(true);
+
+        maraicherWindow.getTextFieldNomArticle().setText(null);
+        maraicherWindow.getTextFieldStock().setText(null);
+        maraicherWindow.getTextFieldPrixUnite().setText(null);
+        maraicherWindow.getPhotoArticle().setIcon(null);
     }
 
     private void Logger()

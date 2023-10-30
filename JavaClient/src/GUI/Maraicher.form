@@ -259,6 +259,7 @@
                   <component id="67ce1" class="javax.swing.JLabel" binding="PhotoArticle">
                     <constraints/>
                     <properties>
+                      <horizontalAlignment value="0"/>
                       <text value=""/>
                     </properties>
                   </component>
