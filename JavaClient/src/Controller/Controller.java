@@ -166,7 +166,8 @@ public class Controller extends WindowAdapter implements ActionListener {
             {
                 if(tokens[1].equals("ok"))
                 {
-                    //doit ajouter verification du panier ici
+                    if(nbArticles > 0)
+                        VidePanier();
 
                     JOptionPane.showMessageDialog(null, "BYE BYE ;)", "Logout", JOptionPane.INFORMATION_MESSAGE);
 
@@ -440,6 +441,19 @@ public class Controller extends WindowAdapter implements ActionListener {
     }
 
     private void onVider() {
+        VidePanier();
+
+        String Requete = "DELETE_CAD#" + numFacture;
+
+        System.out.println(Requete);
+        try {
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Supprimer", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void onConfirme() {
@@ -470,6 +484,58 @@ public class Controller extends WindowAdapter implements ActionListener {
         String filepath = "./images/" + image;
         ImageIcon imageIcon = new ImageIcon(filepath);
         maraicherWindow.getPhotoArticle().setIcon(imageIcon);
+    }
+
+    private void VidePanier()
+    {
+        try {
+            String Requete = "CANCEL_ALL#" + nbArticles;
+
+            for (Article art:Caddie) {
+                Requete += "#" + art.getId() + "&" + art.getStock();
+            }
+
+            System.out.println(Requete);
+
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("CANCEL_ALL"))
+            {
+                if(tokens[1].equals("ko")) throw new Exception("Vous n'avez rien dans votre panier !");
+
+                maraicherWindow.getTextFieldPrixTotal().setText(null);
+
+                DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
+
+                int rowCount = modelArticles.getRowCount();
+
+                for (int i = rowCount - 1; i >= 0; i--) {
+                    modelArticles.removeRow(i);
+                }
+
+                for (Article art: Caddie) {
+                    if(art.getId() == articleCourant.getId())
+                    {
+                        articleCourant.setStock(articleCourant.getStock()+art.getStock());
+                        maraicherWindow.getTextFieldStock().setText(String.valueOf(articleCourant.getStock()));
+                        break;
+                    }
+                }
+
+                Caddie = new LinkedList<>();
+
+                nbArticles = 0;
+            }
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Vider", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     //----------------------------------------------------------------------------------
