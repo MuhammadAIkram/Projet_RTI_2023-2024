@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import java.util.LinkedList;
+import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -218,6 +219,8 @@ public class Controller extends WindowAdapter implements ActionListener {
 
                     System.out.println("Numero de facture: " + numFacture);
 
+                    getCaddie();
+
                     ConsultArticle(1);
                 }
                 else
@@ -328,13 +331,7 @@ public class Controller extends WindowAdapter implements ActionListener {
 
                             maraicherWindow.getTextFieldPrixTotal().setText(String.valueOf(totalCaddie));
 
-                            DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
-
-                            Vector ligne = new Vector();
-                            ligne.add(articleCourant.getIntitule());
-                            ligne.add(articleCourant.getPrix());
-                            ligne.add(stockSpin);
-                            modelArticles.addRow(ligne);
+                            ajouteArticleTablePanier(articleCourant.getIntitule(), articleCourant.getPrix(), stockSpin);
 
                             Requete = "UPDATE_CAD#" + numFacture + "#0#0#" + totalCaddie + "#" + articleCourant.getId() + "#" + stockSpin;
 
@@ -452,11 +449,58 @@ public class Controller extends WindowAdapter implements ActionListener {
             System.out.println(Reponse);
         }
         catch (Exception exception) {
-            JOptionPane.showMessageDialog(null, exception.getMessage(), "Supprimer", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Vider", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void onConfirme() {
+        try {
+            if(nbArticles <= 0)
+                throw new Exception("Vous n'avez rien dans votre panier !");
+
+            String Requete = "CONFIRMER#" + numFacture + "#" + maraicherWindow.getTextFieldNom().getText();
+
+            System.out.println(Requete);
+
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+
+            String[] tokens;
+
+            tokens = Reponse.split("#");
+
+            if(tokens[0].equals("CONFIRMER"))
+            {
+                if(tokens[1].equals("-1"))
+                    throw new Exception("Un problème est survenu lors de l'obtention de votre numéro de reçu, mais votre commande a été confirmée !");
+                else
+                {
+                    totalCaddie = 0.0F;
+
+                    maraicherWindow.getTextFieldPrixTotal().setText(null);
+
+                    DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
+
+                    int rowCount = modelArticles.getRowCount();
+
+                    for (int i = rowCount - 1; i >= 0; i--) {
+                        modelArticles.removeRow(i);
+                    }
+
+                    Caddie = new LinkedList<>();
+
+                    nbArticles = 0;
+
+                    numFacture = Integer.parseInt(tokens[1]);
+
+                    JOptionPane.showMessageDialog(null, "Achat confirmer!", "Payer", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Payer", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     //----------------------------------------------------------------------------------
@@ -509,6 +553,8 @@ public class Controller extends WindowAdapter implements ActionListener {
             {
                 if(tokens[1].equals("ko")) throw new Exception("Vous n'avez rien dans votre panier !");
 
+                totalCaddie = 0.0F;
+
                 maraicherWindow.getTextFieldPrixTotal().setText(null);
 
                 DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
@@ -536,6 +582,66 @@ public class Controller extends WindowAdapter implements ActionListener {
         catch (Exception exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Vider", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void getCaddie()
+    {
+        try {
+            String Requete = "CADDIE#" + numFacture;
+
+            System.out.println(Requete);
+
+            String Reponse = SendRec(Requete);
+
+            System.out.println(Reponse);
+
+            StringTokenizer tokenizer = new StringTokenizer(Reponse, "#");
+            String ptr = tokenizer.nextToken();
+
+            if (ptr.equals("CADDIE")) {
+                nbArticles = Integer.parseInt(tokenizer.nextToken());
+
+                if (nbArticles > 0) {
+                    int i = 0;
+
+                    while (i < nbArticles) {
+                        StringTokenizer itemTokenizer = new StringTokenizer(tokenizer.nextToken(), "$");
+
+                        int id = Integer.parseInt(itemTokenizer.nextToken());
+                        String intitule = itemTokenizer.nextToken();
+                        int stock = Integer.parseInt(itemTokenizer.nextToken());
+                        float prix = Float.parseFloat(itemTokenizer.nextToken());
+
+                        Article art = new Article(id, intitule, prix, stock, "");
+
+                        Caddie.add(art);
+
+                        ajouteArticleTablePanier(intitule, prix, stock);
+
+                        totalCaddie += (stock * prix);
+
+                        i++;
+                    }
+
+                    maraicherWindow.getTextFieldPrixTotal().setText(String.valueOf(totalCaddie));
+                }
+            }
+        }
+        catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, exception.getMessage(), "Vider", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void ajouteArticleTablePanier(String intitule, float prix, int stock)
+    {
+        DefaultTableModel modelArticles = (DefaultTableModel) maraicherWindow.getTableArticles().getModel();
+
+        Vector ligne = new Vector();
+        ligne.add(intitule);
+        ligne.add(prix);
+        ligne.add(stock);
+
+        modelArticles.addRow(ligne);
     }
 
     //----------------------------------------------------------------------------------
