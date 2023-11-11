@@ -1,5 +1,6 @@
 package Serveur.GUI;
 
+import Serveur.Controller.ControllerServeur;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -38,6 +39,14 @@ public class ServeurWindow extends JFrame{
         String[] nomsColonnes = { "Thread", "Action"};
         tableModelEmp.setColumnIdentifiers(nomsColonnes);
         JscrollLog.setViewportView(tableLog);
+    }
+
+    public void setControleur(ControllerServeur c)
+    {
+        DemarrerButton.addActionListener(c);
+        ArreterButton.addActionListener(c);
+
+        this.addWindowListener(c);
     }
 
     public static void main(String[] args)

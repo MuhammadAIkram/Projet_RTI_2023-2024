@@ -55,6 +55,7 @@ public abstract class ThreadClient extends Thread{
         finally
         {
             try {
+                logger.Trace("fermeture socket succes");
                 csocket.close();
             }
             catch (IOException ex) {

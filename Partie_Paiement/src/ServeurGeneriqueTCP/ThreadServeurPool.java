@@ -47,6 +47,7 @@ public class ThreadServeurPool extends ThreadServeur
             catch (SocketTimeoutException ex)
             {
                 // Pour vérifier si le thread a été interrompu
+                if(this.isInterrupted()) break;
             }
             catch (IOException ex)
             {
@@ -54,6 +55,18 @@ public class ThreadServeurPool extends ThreadServeur
             }
         }
         logger.Trace("TH Serveur (Pool) interrompu.");
+
         pool.interrupt();
+
+        if(ssocket != null && !ssocket.isClosed())
+        {
+            try {
+                ssocket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        logger.Trace("TH Serveur termine.");
     }
 }
