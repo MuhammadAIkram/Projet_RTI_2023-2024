@@ -1,5 +1,6 @@
 package Client.GUI;
 
+import Client.Controller.ControllerClient;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -30,6 +31,13 @@ public class LoginWindow extends JFrame{
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         setLocationRelativeTo(null);
+    }
+
+    public void setControleur(ControllerClient c)
+    {
+        ConnecterButton.addActionListener(c);
+
+        this.addWindowListener(c);
     }
 
     public static void main(String[] args)

@@ -1,5 +1,6 @@
 package Client.GUI;
 
+import Client.Controller.ControllerClient;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -19,6 +20,34 @@ public class HomeWindow extends JFrame{
     private JTable JTableFactureAPayer;
     private JTable JTableFactureDejaPayer;
 
+    public JButton getLogoutButton() {
+        return LogoutButton;
+    }
+
+    public JButton getPayerButton() {
+        return PayerButton;
+    }
+
+    public JButton getVisualiserAPayerButton() {
+        return VisualiserAPayerButton;
+    }
+
+    public JButton getVisualiserDejaPayerButton() {
+        return VisualiserDejaPayerButton;
+    }
+
+    public JTextField getLoginNomField() {
+        return LoginNomField;
+    }
+
+    public JTable getJTableFactureAPayer() {
+        return JTableFactureAPayer;
+    }
+
+    public JTable getJTableFactureDejaPayer() {
+        return JTableFactureDejaPayer;
+    }
+
     public HomeWindow(){
         setSize(800,600);
         setTitle("Client Paiement");
@@ -36,6 +65,11 @@ public class HomeWindow extends JFrame{
         DefaultTableModel tableModel2 = (DefaultTableModel) JTableFactureDejaPayer.getModel();
         tableModel2.setColumnIdentifiers(nomsColonnes);
         JScrollADejaPayer.setViewportView(JTableFactureDejaPayer);
+    }
+
+    public void setControleur(ControllerClient c)
+    {
+        this.addWindowListener(c);
     }
 
     public static void main(String[] args)

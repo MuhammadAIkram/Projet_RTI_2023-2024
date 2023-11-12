@@ -11,13 +11,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.lang.module.Configuration;
 import java.util.Properties;
 import java.util.Vector;
 
 public class ControllerServeur extends WindowAdapter implements Logger, ActionListener {
     ThreadServeur threadServeur;
     ServeurWindow serveurWindow;
+    Protocole protocole;
+
+    boolean ServeurStart;
 
     public ControllerServeur(ServeurWindow serveurWindow) {
         this.serveurWindow = serveurWindow;
@@ -26,6 +28,7 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
         this.serveurWindow.getArreterButton().setEnabled(false);
 
         threadServeur = null;
+        ServeurStart = false;
     }
 
     @Override
@@ -47,6 +50,12 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
         int ret = JOptionPane.showConfirmDialog(null,"Êtes-vous certain de vouloir quitter ?");
         if (ret == JOptionPane.YES_OPTION)
         {
+            if(ServeurStart)
+            {
+                protocole.CloseDatabase();
+                threadServeur.interrupt();
+            }
+
             System.exit(0);
         }
     }
@@ -66,7 +75,7 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
             int port = Integer.parseInt(properties.getProperty("PORT_PAIEMENT"));
             int nbThread = Integer.parseInt(properties.getProperty("NB_Thread_Pool"));
 
-            Protocole protocole = new VESPAP(this);
+            protocole = new VESPAP(this);
 
             threadServeur = new ThreadServeurPool(port,protocole,nbThread,this);
 
@@ -75,6 +84,8 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
 
             this.serveurWindow.getDemarrerButton().setEnabled(false);
             this.serveurWindow.getArreterButton().setEnabled(true);
+
+            ServeurStart = true;
         }
         catch (NumberFormatException ex)
         {
@@ -90,10 +101,13 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
     private void onArreter() {
         try {
             threadServeur.interrupt();
-           // threadServeur.CloseSocket();
 
             this.serveurWindow.getDemarrerButton().setEnabled(true);
             this.serveurWindow.getArreterButton().setEnabled(false);
+
+            protocole.CloseDatabase();
+
+            ServeurStart = false;
         }
         catch (Exception e)
         {
