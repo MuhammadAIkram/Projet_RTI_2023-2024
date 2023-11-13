@@ -2,16 +2,20 @@ package Client.Controller;
 
 import Client.GUI.HomeWindow;
 import Client.GUI.LoginWindow;
+import Modele.Facture;
 import VESPAP.*;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.Properties;
+import java.util.Vector;
 
 public class ControllerClient extends WindowAdapter implements ActionListener {
     private String login;
@@ -22,6 +26,8 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
     private ObjectInputStream ois;
     private LoginWindow loginWindow;
     private HomeWindow homeWindow;
+    private LinkedList<Facture> facturesAPayer;
+    private LinkedList<Facture> facturesDejaPayer;
 
     public ControllerClient(LoginWindow loginWindow){
         try {
@@ -111,6 +117,9 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
 
                 homeWindow = new HomeWindow();
                 homeWindow.setControleur(this);
+
+                getFactures(); //pour recuperer les factures
+
                 homeWindow.setVisible(true);
 
                 homeWindow.getLoginNomField().setText(login);
@@ -138,6 +147,60 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
 
                 homeWindow.setVisible(false);
                 loginWindow.setVisible(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void getFactures(){
+        System.out.println("recuperation des factures");
+
+        try{
+            //recuperation des factures a paye
+            RequeteGetFactures requete = new RequeteGetFactures(false, idClient);
+            oos.writeObject(requete);
+
+            ReponseGetFactures reponse = (ReponseGetFactures) ois.readObject();
+
+            if (reponse.isValide()){
+                facturesAPayer = reponse.getFactures();
+
+                DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureAPayer().getModel();
+
+                for (Facture facture:facturesAPayer) {
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+                }
+            }
+
+            //recuperation des factures deja paye
+            requete = new RequeteGetFactures(true, idClient);
+            oos.writeObject(requete);
+
+            reponse = (ReponseGetFactures) ois.readObject();
+
+            if (reponse.isValide()){
+                facturesDejaPayer = reponse.getFactures();
+
+                DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureDejaPayer().getModel();
+
+                for (Facture facture:facturesDejaPayer) {
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+                }
             }
         }
         catch (Exception ex)

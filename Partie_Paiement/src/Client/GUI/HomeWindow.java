@@ -57,7 +57,7 @@ public class HomeWindow extends JFrame{
 
         JTableFactureAPayer = new JTable();
         DefaultTableModel tableModel = (DefaultTableModel) JTableFactureAPayer.getModel();
-        String[] nomsColonnes = { "Date", "Montant"};
+        String[] nomsColonnes = {"ID", "Date", "Montant"};
         tableModel.setColumnIdentifiers(nomsColonnes);
         JScrollAPayer.setViewportView(JTableFactureAPayer);
 

@@ -1,10 +1,12 @@
 package VESPAP;
 
 import Beans.DataBaseBeanHandler;
+import Modele.Facture;
 import ServeurGeneriqueTCP.*;
 
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class VESPAP implements Protocole
 {
@@ -32,6 +34,7 @@ public class VESPAP implements Protocole
     {
         if (requete instanceof RequeteLOGIN) return TraiteRequeteLOGIN((RequeteLOGIN) requete, socket);
         if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
+        if (requete instanceof RequeteGetFactures) return TraiteRequeteGetFactures((RequeteGetFactures) requete);
 
         return null;
     }
@@ -74,6 +77,17 @@ public class VESPAP implements Protocole
         ReponseLOGOUT reponse = new ReponseLOGOUT(true);
         return reponse;
     }
+
+    private synchronized ReponseGetFactures TraiteRequeteGetFactures(RequeteGetFactures requete) {
+        logger.Trace("RequeteGetFactures reçue");
+
+        LinkedList<Facture> factures = dataBaseBeanHandler.selectFactures(requete.isPaye(), requete.getIdClient());
+
+        ReponseGetFactures reponse = new ReponseGetFactures(true, factures);
+
+        return reponse;
+    }
+
     @Override
     public void CloseDatabase(){
         dataBaseBeanHandler.close();

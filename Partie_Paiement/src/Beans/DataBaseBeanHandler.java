@@ -1,7 +1,10 @@
 package Beans;
 
+import Modele.Facture;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 public class DataBaseBeanHandler {
     private DataBaseBeanGenerique beanGenerique;
@@ -28,6 +31,35 @@ public class DataBaseBeanHandler {
             }
 
             return id;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public LinkedList<Facture> selectFactures(boolean paye, int idClient){
+        try {
+            int p;
+
+            if(paye) p = 1;
+            else p = 0;
+
+            String query = "SELECT * FROM factures WHERE paye = " + p + " AND idClient = " + idClient + " AND dateFacture IS NOT NULL";
+
+            ResultSet resultSet = beanGenerique.executeSelect(query);
+
+            LinkedList<Facture> factures = new LinkedList<>();
+
+            while (resultSet.next()){
+                int idFacture = Integer.parseInt(resultSet.getString("idFacture"));
+                String dateFacture = resultSet.getString("dateFacture");
+                Float montant = Float.valueOf(resultSet.getString("montant"));
+
+                Facture facture = new Facture(idFacture, dateFacture, montant);
+
+                factures.add(facture);
+            }
+
+            return factures;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
