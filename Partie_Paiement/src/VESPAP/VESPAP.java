@@ -28,17 +28,23 @@ public class VESPAP implements Protocole
     }
 
     @Override
-    public synchronized Reponse TraiteRequete(Requete requete, Socket socket) throws FinConnexionException
+    public synchronized Reponse TraiteRequete(Requete requete, Socket socket)
     {
         if (requete instanceof RequeteLOGIN) return TraiteRequeteLOGIN((RequeteLOGIN) requete, socket);
-        if (requete instanceof RequeteLOGOUT) TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
+        if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
 
         return null;
     }
 
-    private synchronized ReponseLOGIN TraiteRequeteLOGIN(RequeteLOGIN requete, Socket socket) throws FinConnexionException
+    private synchronized ReponseLOGIN TraiteRequeteLOGIN(RequeteLOGIN requete, Socket socket)
     {
         logger.Trace("RequeteLOGIN reçue de " + requete.getLogin());
+
+        if(clientsConnectes.containsKey(requete.getLogin()))
+        {
+            logger.Trace(requete.getLogin() + " --> erreur de login, Client deja logge");
+            return new ReponseLOGIN(false);
+        }
 
         int id = dataBaseBeanHandler.SelectLogin(requete.getLogin(),requete.getPassword());
 
@@ -59,12 +65,14 @@ public class VESPAP implements Protocole
         }
     }
 
-    private synchronized void TraiteRequeteLOGOUT(RequeteLOGOUT requete) throws FinConnexionException
+    private synchronized ReponseLOGOUT TraiteRequeteLOGOUT(RequeteLOGOUT requete)
     {
         logger.Trace("RequeteLOGOUT reçue de " + requete.getLogin());
         clientsConnectes.remove(requete.getLogin());
         logger.Trace(requete.getLogin() + " correctement déloggé");
-        throw new FinConnexionException(null);
+
+        ReponseLOGOUT reponse = new ReponseLOGOUT(true);
+        return reponse;
     }
     @Override
     public void CloseDatabase(){

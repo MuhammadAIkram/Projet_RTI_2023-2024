@@ -11,11 +11,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
+import java.util.Properties;
 
 public class ControllerClient extends WindowAdapter implements ActionListener {
     private String login;
     private int idClient;
     private boolean logged;
+    Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private LoginWindow loginWindow;
@@ -25,7 +27,14 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         try {
             this.loginWindow = loginWindow;
 
-            Socket socket = new Socket("localhost", 50050);
+            InputStream input = new FileInputStream("./Fichiers/config.properties");
+
+            Properties properties = new Properties();
+            properties.load(input);
+
+            int port = Integer.parseInt(properties.getProperty("PORT_PAIEMENT"));
+
+            socket = new Socket("localhost", port);
 
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
@@ -43,6 +52,9 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         if(e.getSource() == loginWindow.getConnecterButton()) {
             onConnecter();
         }
+        if(e.getSource() == homeWindow.getLogoutButton()){
+            onLogout();
+        }
     }
 
     @Override
@@ -54,6 +66,22 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         int ret = JOptionPane.showConfirmDialog(null,"Êtes-vous certain de vouloir quitter ?");
         if (ret == JOptionPane.YES_OPTION)
         {
+            if(logged)
+            {
+                onLogout();
+            }
+
+            if(!socket.isClosed() && socket != null) {
+                try {
+                    System.out.println("Fermeture succes");
+                    socket.close();
+                    oos.close();
+                    ois.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             System.exit(0);
         }
     }
@@ -94,5 +122,27 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
             JOptionPane.showMessageDialog(null,e.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    private void onLogout() {
+        System.out.println("button logout cliquer");
+
+        try {
+            RequeteLOGOUT requete = new RequeteLOGOUT(login);
+            oos.writeObject(requete);
+
+            ReponseLOGOUT reponse = (ReponseLOGOUT) ois.readObject();
+
+            if (reponse.isValide()){
+                logged = false;
+
+                homeWindow.setVisible(false);
+                loginWindow.setVisible(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

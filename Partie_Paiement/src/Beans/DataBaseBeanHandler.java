@@ -19,9 +19,9 @@ public class DataBaseBeanHandler {
             int id = 0;
 
             if(resultSet.next()){
-                System.out.println("id = " + resultSet.getInt("id"));
-                System.out.println("login = " + resultSet.getString("login"));
-                System.out.println("password = " + resultSet.getString("password"));
+                //System.out.println("id = " + resultSet.getInt("id"));
+                //System.out.println("login = " + resultSet.getString("login"));
+                //System.out.println("password = " + resultSet.getString("password"));
 
                 if(MDP.equals(resultSet.getString("password")))
                     id = resultSet.getInt("id");
