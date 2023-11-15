@@ -65,6 +65,23 @@ public class DataBaseBeanHandler {
         }
     }
 
+    public int EffectuerPaiement(int idFacture){
+        try {
+            String query = "UPDATE factures SET paye = 1 where idFacture = " + idFacture;
+            int rowsAffected = beanGenerique.executeIUD(query);
+            if (rowsAffected > 0) {
+                System.out.println("Paiement effectué avec succès.");
+                return 1;
+            } else {
+                System.out.println("Échec du paiement.");
+                return 0;
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void close() {
         try {
             beanGenerique.close();

@@ -1,5 +1,6 @@
 package Client.Controller;
 
+import Client.GUI.CarteVisa;
 import Client.GUI.HomeWindow;
 import Client.GUI.LoginWindow;
 import Modele.Facture;
@@ -26,6 +27,7 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
     private ObjectInputStream ois;
     private LoginWindow loginWindow;
     private HomeWindow homeWindow;
+    private CarteVisa carteVisa;
     private LinkedList<Facture> facturesAPayer;
     private LinkedList<Facture> facturesDejaPayer;
 
@@ -61,6 +63,15 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         if(e.getSource() == homeWindow.getLogoutButton()){
             onLogout();
         }
+        if(e.getSource() == homeWindow.getPayerButton()){
+            onPayer();
+        }
+        if(e.getSource() == carteVisa.getValiderButton()){
+            onValider();
+        }
+        if(e.getSource() == carteVisa.getCancelButton()){
+            onCancel();
+        }
     }
 
     @Override
@@ -91,6 +102,10 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
             System.exit(0);
         }
     }
+
+    //----------------------------------------------------------------------------------
+    //---------		login window
+    //----------------------------------------------------------------------------------
 
     private void onConnecter() {
         System.out.println("button connecter cliquer");
@@ -132,6 +147,10 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         }
 
     }
+
+    //----------------------------------------------------------------------------------
+    //---------		home window
+    //----------------------------------------------------------------------------------
 
     private void onLogout() {
         System.out.println("button logout cliquer");
@@ -207,5 +226,82 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void onPayer() {
+        System.out.println("Button payer clicker");
+
+        try {
+            if(homeWindow.getJTableFactureAPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à payer");
+
+            carteVisa = new CarteVisa();
+            carteVisa.setControleur(this);
+            carteVisa.setVisible(true);
+
+            homeWindow.setVisible(false);
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //----------------------------------------------------------------------------------
+    //---------		carte visa
+    //----------------------------------------------------------------------------------
+
+    private void onCancel() {
+        carteVisa.setVisible(false);
+        homeWindow.setVisible(true);
+    }
+
+    private void onValider() {
+        try {
+            int idFact = facturesAPayer.get(homeWindow.getJTableFactureAPayer().getSelectedRow()).getIdFacture();
+            String nom = carteVisa.getNomField().getText();
+            String numero = carteVisa.getNumeroField().getText();
+
+            RequetePayFacture requete = new RequetePayFacture(idFact, nom, numero);
+            oos.writeObject(requete);
+
+            ReponsePayFacture reponse = (ReponsePayFacture) ois.readObject();
+
+            if (reponse.isValide()){
+                if(!reponse.isEchec()){
+                    JOptionPane.showMessageDialog(null, "Votre paiement a été traité avec succès", "Paiement", JOptionPane.INFORMATION_MESSAGE);
+
+                    int index = homeWindow.getJTableFactureAPayer().getSelectedRow();
+
+                    Facture facture = facturesAPayer.get(index);
+
+                    facturesDejaPayer.add(facture);
+
+                    DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureDejaPayer().getModel();
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+
+                    DefaultTableModel modelFactures2 = (DefaultTableModel) homeWindow.getJTableFactureAPayer().getModel();
+
+                    modelFactures2.removeRow(index);
+
+                    facturesAPayer.remove(index);
+
+                    carteVisa.setVisible(false);
+                    homeWindow.setVisible(true);
+                }
+                else throw new Exception("Échec du paiement.");
+            }
+            else throw new Exception("numéro de carte invalide");
+        } catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 }

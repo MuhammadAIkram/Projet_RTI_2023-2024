@@ -70,6 +70,7 @@ public class HomeWindow extends JFrame{
     public void setControleur(ControllerClient c)
     {
         LogoutButton.addActionListener(c);
+        PayerButton.addActionListener(c);
 
         this.addWindowListener(c);
     }

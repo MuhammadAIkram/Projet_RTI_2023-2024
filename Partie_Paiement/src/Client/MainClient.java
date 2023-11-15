@@ -4,8 +4,6 @@ import Client.Controller.ControllerClient;
 import Client.GUI.LoginWindow;
 import com.formdev.flatlaf.FlatLightLaf;
 
-import java.io.IOException;
-
 public class MainClient {
     public static void main(String[] args) {
         FlatLightLaf.setup();

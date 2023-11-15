@@ -35,6 +35,7 @@ public class VESPAP implements Protocole
         if (requete instanceof RequeteLOGIN) return TraiteRequeteLOGIN((RequeteLOGIN) requete, socket);
         if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
         if (requete instanceof RequeteGetFactures) return TraiteRequeteGetFactures((RequeteGetFactures) requete);
+        if (requete instanceof RequetePayFacture) return TraiteRequetePayFacture((RequetePayFacture) requete);
 
         return null;
     }
@@ -84,6 +85,34 @@ public class VESPAP implements Protocole
         LinkedList<Facture> factures = dataBaseBeanHandler.selectFactures(requete.isPaye(), requete.getIdClient());
 
         ReponseGetFactures reponse = new ReponseGetFactures(true, factures);
+
+        return reponse;
+    }
+
+    private synchronized ReponsePayFacture TraiteRequetePayFacture(RequetePayFacture requete) {
+        logger.Trace("RequetePayFacture reçue");
+
+        String visaRegex = "^4[0-9]{15}$";
+        ReponsePayFacture reponse;
+        if (requete.getNumeroCarte().matches(visaRegex)) {
+            //System.out.println("Valid Visa card number");
+
+            int veri = dataBaseBeanHandler.EffectuerPaiement(requete.getIdFacture());
+
+            if(veri == 1){
+                logger.Trace("Paiement Reussi");
+                reponse = new ReponsePayFacture(true, false);
+            }
+            else{
+                logger.Trace("Paiement Echec");
+                reponse = new ReponsePayFacture(true, true);
+            }
+
+        } else {
+            //System.out.println("Invalid Visa card number");
+            logger.Trace("Carte Invalid!");
+            reponse = new ReponsePayFacture(false, true);
+        }
 
         return reponse;
     }
