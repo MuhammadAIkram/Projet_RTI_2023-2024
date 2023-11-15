@@ -3,6 +3,7 @@ package Client.Controller;
 import Client.GUI.CarteVisa;
 import Client.GUI.HomeWindow;
 import Client.GUI.LoginWindow;
+import Client.GUI.VisualiserFactureWindow;
 import Modele.Facture;
 import VESPAP.*;
 
@@ -28,6 +29,7 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
     private LoginWindow loginWindow;
     private HomeWindow homeWindow;
     private CarteVisa carteVisa;
+    private VisualiserFactureWindow visualiserFactureWindow;
     private LinkedList<Facture> facturesAPayer;
     private LinkedList<Facture> facturesDejaPayer;
 
@@ -49,6 +51,9 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
 
             logged = false;
             idClient = 0;
+
+            carteVisa = new CarteVisa();
+            visualiserFactureWindow = new VisualiserFactureWindow();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null,e.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
             System.exit(0);
@@ -66,11 +71,20 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         if(e.getSource() == homeWindow.getPayerButton()){
             onPayer();
         }
+        if(e.getSource() == homeWindow.getVisualiserAPayerButton()){
+            onVisualiserAPayer();
+        }
+        if(e.getSource() == homeWindow.getVisualiserDejaPayerButton()){
+            onVisualiserDejaPayer();
+        }
         if(e.getSource() == carteVisa.getValiderButton()){
             onValider();
         }
         if(e.getSource() == carteVisa.getCancelButton()){
             onCancel();
+        }
+        if(e.getSource() == visualiserFactureWindow.getFermerButton()){
+            onFermer();
         }
     }
 
@@ -247,6 +261,64 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
         }
     }
 
+    private void onVisualiserDejaPayer() {
+        System.out.println("Button VisualiserDejaPayer clicker");
+
+        try {
+            if(homeWindow.getJTableFactureDejaPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures a payer)");
+
+            Facture facture = facturesDejaPayer.get(homeWindow.getJTableFactureDejaPayer().getSelectedRow());
+
+            RequeteCONSULT requete = new RequeteCONSULT(facture.getIdFacture());
+            oos.writeObject(requete);
+
+            ReponseCONSULT reponse = (ReponseCONSULT) ois.readObject();
+
+            if (reponse.isValide()){
+                visualiserFactureWindow = new VisualiserFactureWindow(facture.getIdFacture(), facture.getDateFacture(), facture.getMontant(), reponse.getArticles());
+                visualiserFactureWindow.setControleur(this);
+                visualiserFactureWindow.setVisible(true);
+
+                homeWindow.setVisible(false);
+            }
+            else throw new Exception("Erreur avec consult");
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onVisualiserAPayer() {
+        System.out.println("Button onVisualiserAPayer clicker");
+
+        try {
+            if(homeWindow.getJTableFactureAPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures a payer)");
+
+            Facture facture = facturesAPayer.get(homeWindow.getJTableFactureAPayer().getSelectedRow());
+
+            RequeteCONSULT requete = new RequeteCONSULT(facture.getIdFacture());
+            oos.writeObject(requete);
+
+            ReponseCONSULT reponse = (ReponseCONSULT) ois.readObject();
+
+            if (reponse.isValide()){
+                visualiserFactureWindow = new VisualiserFactureWindow(facture.getIdFacture(), facture.getDateFacture(), facture.getMontant(), reponse.getArticles());
+                visualiserFactureWindow.setControleur(this);
+                visualiserFactureWindow.setVisible(true);
+
+                homeWindow.setVisible(false);
+            }
+            else throw new Exception("Erreur avec consult");
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     //----------------------------------------------------------------------------------
     //---------		carte visa
     //----------------------------------------------------------------------------------
@@ -303,5 +375,10 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    private void onFermer() {
+        visualiserFactureWindow.setVisible(false);
+        homeWindow.setVisible(true);
     }
 }

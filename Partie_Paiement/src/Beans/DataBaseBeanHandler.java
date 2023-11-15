@@ -1,6 +1,7 @@
 package Beans;
 
 import Modele.Facture;
+import Modele.Vente;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -76,6 +77,39 @@ public class DataBaseBeanHandler {
                 System.out.println("Échec du paiement.");
                 return 0;
             }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public LinkedList<Vente> selectVentes(int idFacture){
+        try {
+            String query = "SELECT * FROM ventes WHERE idFacture = " + idFacture;
+
+            ResultSet resultSet = beanGenerique.executeSelect(query);
+
+            LinkedList<Vente> articles = new LinkedList<>();
+
+            while (resultSet.next()){
+                int idArticle = resultSet.getInt("idArticle");
+                int quantite = resultSet.getInt("quantite");
+                String nom = null;
+                Float PrixU = null;
+
+                query = "SELECT * FROM articles WHERE id = " + idArticle;
+
+                ResultSet resultSet2 = beanGenerique.executeSelect(query);
+
+                if(resultSet2.next()){
+                    nom = resultSet2.getString("intitule");
+                    PrixU = resultSet2.getFloat("prix");
+                }
+
+                articles.add(new Vente(nom, quantite, PrixU));
+            }
+
+            return articles;
         }
         catch (SQLException e) {
             throw new RuntimeException(e);

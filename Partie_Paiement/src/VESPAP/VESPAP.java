@@ -2,6 +2,7 @@ package VESPAP;
 
 import Beans.DataBaseBeanHandler;
 import Modele.Facture;
+import Modele.Vente;
 import ServeurGeneriqueTCP.*;
 
 import java.net.Socket;
@@ -36,6 +37,7 @@ public class VESPAP implements Protocole
         if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
         if (requete instanceof RequeteGetFactures) return TraiteRequeteGetFactures((RequeteGetFactures) requete);
         if (requete instanceof RequetePayFacture) return TraiteRequetePayFacture((RequetePayFacture) requete);
+        if (requete instanceof RequeteCONSULT) return TraiteRequeteCONSULT((RequeteCONSULT) requete);
 
         return null;
     }
@@ -113,6 +115,16 @@ public class VESPAP implements Protocole
             logger.Trace("Carte Invalid!");
             reponse = new ReponsePayFacture(false, true);
         }
+
+        return reponse;
+    }
+
+    private synchronized ReponseCONSULT TraiteRequeteCONSULT(RequeteCONSULT requete) {
+        logger.Trace("RequeteCONSULT reçue");
+
+        LinkedList<Vente> articles = dataBaseBeanHandler.selectVentes(requete.getIdFacture());
+
+        ReponseCONSULT reponse = new ReponseCONSULT(true, articles);
 
         return reponse;
     }

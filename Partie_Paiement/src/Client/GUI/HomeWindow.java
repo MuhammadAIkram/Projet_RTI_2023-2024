@@ -71,6 +71,8 @@ public class HomeWindow extends JFrame{
     {
         LogoutButton.addActionListener(c);
         PayerButton.addActionListener(c);
+        VisualiserAPayerButton.addActionListener(c);
+        VisualiserDejaPayerButton.addActionListener(c);
 
         this.addWindowListener(c);
     }
