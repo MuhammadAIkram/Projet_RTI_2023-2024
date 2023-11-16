@@ -266,7 +266,7 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
 
         try {
             if(homeWindow.getJTableFactureDejaPayer().getSelectedRow() == -1)
-                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures a payer)");
+                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures deja payer)");
 
             Facture facture = facturesDejaPayer.get(homeWindow.getJTableFactureDejaPayer().getSelectedRow());
 
@@ -330,6 +330,11 @@ public class ControllerClient extends WindowAdapter implements ActionListener {
 
     private void onValider() {
         try {
+            if(carteVisa.getNomField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le nom");
+            if(carteVisa.getNumeroField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le numero");
+            if(carteVisa.getDateField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour la date");
+            if(carteVisa.getCVCField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le CVC");
+
             int idFact = facturesAPayer.get(homeWindow.getJTableFactureAPayer().getSelectedRow()).getIdFacture();
             String nom = carteVisa.getNomField().getText();
             String numero = carteVisa.getNumeroField().getText();

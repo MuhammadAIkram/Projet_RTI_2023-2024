@@ -51,9 +51,9 @@ public class DataBaseBeanHandler {
             LinkedList<Facture> factures = new LinkedList<>();
 
             while (resultSet.next()){
-                int idFacture = Integer.parseInt(resultSet.getString("idFacture"));
+                int idFacture = resultSet.getInt("idFacture");
                 String dateFacture = resultSet.getString("dateFacture");
-                Float montant = Float.valueOf(resultSet.getString("montant"));
+                Float montant = resultSet.getFloat("montant");
 
                 Facture facture = new Facture(idFacture, dateFacture, montant);
 
