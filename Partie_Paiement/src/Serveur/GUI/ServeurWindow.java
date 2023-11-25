@@ -13,6 +13,7 @@ public class ServeurWindow extends JFrame{
     private JPanel ButtonPanel;
     private JPanel LogPanel;
     private JScrollPane JscrollLog;
+    private JCheckBox checkBoxServeurType;
     private JTable tableLog;
 
     public JButton getDemarrerButton() {
@@ -25,6 +26,10 @@ public class ServeurWindow extends JFrame{
 
     public JTable getTableLog() {
         return tableLog;
+    }
+
+    public JCheckBox getCheckBoxServeurType() {
+        return checkBoxServeurType;
     }
 
     public ServeurWindow(){

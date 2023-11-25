@@ -3,6 +3,7 @@ package Serveur.Controller;
 import Serveur.GUI.ServeurWindow;
 import ServeurGeneriqueTCP.*;
 import VESPAP.VESPAP;
+import VESPAPS.VESPAPS;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -72,12 +73,20 @@ public class ControllerServeur extends WindowAdapter implements Logger, ActionLi
 
             properties.load(input);
 
-            int port = Integer.parseInt(properties.getProperty("PORT_PAIEMENT"));
-            int nbThread = Integer.parseInt(properties.getProperty("NB_Thread_Pool"));
+            int port;
 
-            protocole = new VESPAP(this);
+            if(this.serveurWindow.getCheckBoxServeurType().isSelected()){
+                protocole = new VESPAPS(this);
+                port = Integer.parseInt(properties.getProperty("PORT_PAIEMENT_SECURE"));
+                threadServeur = new ThreadServeurDemande(port,protocole,this);
+            }
+            else {
+                protocole = new VESPAP(this);
+                port = Integer.parseInt(properties.getProperty("PORT_PAIEMENT"));
+                int nbThread = Integer.parseInt(properties.getProperty("NB_Thread_Pool"));
 
-            threadServeur = new ThreadServeurPool(port,protocole,nbThread,this);
+                threadServeur = new ThreadServeurPool(port,protocole,nbThread,this);
+            }
 
             videLogs();
             threadServeur.start();
