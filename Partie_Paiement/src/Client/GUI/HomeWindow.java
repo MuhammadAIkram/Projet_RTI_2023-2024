@@ -1,6 +1,7 @@
 package Client.GUI;
 
 import Client.Controller.ControllerClient;
+import Client_S.Controller.ControllerClientS;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -68,6 +69,16 @@ public class HomeWindow extends JFrame{
     }
 
     public void setControleur(ControllerClient c)
+    {
+        LogoutButton.addActionListener(c);
+        PayerButton.addActionListener(c);
+        VisualiserAPayerButton.addActionListener(c);
+        VisualiserDejaPayerButton.addActionListener(c);
+
+        this.addWindowListener(c);
+    }
+
+    public void setControleur(ControllerClientS c)
     {
         LogoutButton.addActionListener(c);
         PayerButton.addActionListener(c);

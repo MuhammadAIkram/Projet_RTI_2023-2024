@@ -1,6 +1,7 @@
 package Client.GUI;
 
 import Client.Controller.ControllerClient;
+import Client_S.Controller.ControllerClientS;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
@@ -34,6 +35,13 @@ public class LoginWindow extends JFrame{
     }
 
     public void setControleur(ControllerClient c)
+    {
+        ConnecterButton.addActionListener(c);
+
+        this.addWindowListener(c);
+    }
+
+    public void setControleur(ControllerClientS c)
     {
         ConnecterButton.addActionListener(c);
 

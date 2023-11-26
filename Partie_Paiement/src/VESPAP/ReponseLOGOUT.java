@@ -5,7 +5,7 @@ import ServeurGeneriqueTCP.Reponse;
 public class ReponseLOGOUT implements Reponse {
     private boolean valide;
 
-    ReponseLOGOUT(boolean v) {
+    public ReponseLOGOUT(boolean v) {
         valide = v;
     }
 

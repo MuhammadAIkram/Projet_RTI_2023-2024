@@ -37,6 +37,24 @@ public class DataBaseBeanHandler {
         }
     }
 
+    public String RecupereMotDePasse(String login){
+        try {
+            String query = "SELECT * FROM clients WHERE login = '" + login + "'";
+
+            ResultSet resultSet = beanGenerique.executeSelect(query);
+
+            String res = null;
+
+            if(resultSet.next()){
+                res = resultSet.getString("password");
+            }
+
+            return res;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public LinkedList<Facture> selectFactures(boolean paye, int idClient){
         try {
             int p;

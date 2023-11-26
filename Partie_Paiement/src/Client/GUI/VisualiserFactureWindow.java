@@ -1,6 +1,7 @@
 package Client.GUI;
 
 import Client.Controller.ControllerClient;
+import Client_S.Controller.ControllerClientS;
 import Modele.Facture;
 import Modele.Vente;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -59,6 +60,11 @@ public class VisualiserFactureWindow extends JFrame{
     }
 
     public void setControleur(ControllerClient c)
+    {
+        fermerButton.addActionListener(c);
+    }
+
+    public void setControleur(ControllerClientS c)
     {
         fermerButton.addActionListener(c);
     }
