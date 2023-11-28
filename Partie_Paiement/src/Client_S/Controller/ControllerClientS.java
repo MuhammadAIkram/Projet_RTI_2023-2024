@@ -5,29 +5,35 @@ import Client.GUI.HomeWindow;
 import Client.GUI.LoginWindow;
 import Client.GUI.VisualiserFactureWindow;
 import Modele.Facture;
-import VESPAP.ReponseLOGIN;
 import VESPAP.ReponseLOGOUT;
-import VESPAP.RequeteLOGIN;
 import VESPAP.RequeteLOGOUT;
+import VESPAPS.ReponseGetFactures_S;
 import VESPAPS.ReponseLOGIN_S;
+import VESPAPS.RequeteGetFactures_S;
 import VESPAPS.RequeteLOGIN_S;
 
+import javax.crypto.SecretKey;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
+import java.security.PrivateKey;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.Vector;
+
+import MyCrypto.MyCrypto;
 
 public class ControllerClientS extends WindowAdapter implements ActionListener {
 
     private String login;
     private int idClient;
     private boolean logged;
-    Socket socket;
+    private Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private LoginWindow loginWindow;
@@ -36,6 +42,8 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
     private VisualiserFactureWindow visualiserFactureWindow;
     private LinkedList<Facture> facturesAPayer;
     private LinkedList<Facture> facturesDejaPayer;
+    private PrivateKey clePriveeClient;
+    private SecretKey cleSession;
 
     public ControllerClientS(LoginWindow loginWindow){
         try {
@@ -58,6 +66,8 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
             carteVisa = new CarteVisa();
             visualiserFactureWindow = new VisualiserFactureWindow();
+
+            clePriveeClient = RecupereClePriveeClient();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null,e.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
             System.exit(0);
@@ -121,6 +131,9 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
             if (reponse.isValide()){
                 idClient = reponse.getIdClient();
+                cleSession = reponse.getCleSession();
+
+                System.out.println("Génération d'une clé de session : " + cleSession);
 
                 JOptionPane.showMessageDialog(null, "Vous êtes connecté avec succès", "Login", JOptionPane.INFORMATION_MESSAGE);
 
@@ -130,6 +143,8 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
                 homeWindow = new HomeWindow();
                 homeWindow.setControleur(this);
+
+                getFactures();
 
                 homeWindow.setVisible(true);
 
@@ -159,6 +174,97 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
                 homeWindow.setVisible(false);
                 loginWindow.setVisible(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //----------------------------------------------------------------------------------
+    //---------		autres
+    //----------------------------------------------------------------------------------
+
+    public static PrivateKey RecupereClePriveeClient() throws IOException, ClassNotFoundException {
+        // Désérialisation de la clé privée du serveur
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./Fichiers/clePriveeClient.ser"));
+        PrivateKey cle = (PrivateKey) ois.readObject();
+        ois.close();
+
+        System.out.println("Cle privee recuperer");
+
+        return cle;
+    }
+
+    private void getFactures(){
+        System.out.println("recuperation des factures");
+
+        try{
+            //recuperation des factures a paye
+            RequeteGetFactures_S requete = new RequeteGetFactures_S(false, idClient,clePriveeClient);
+            oos.writeObject(requete);
+
+            ReponseGetFactures_S reponse = (ReponseGetFactures_S) ois.readObject();
+
+            if (reponse.isValide()){
+                // Décryptage symétrique du message
+                byte[] messageDecrypte;
+                System.out.println("Message reçu = " + new String(reponse.getFactures()));
+                messageDecrypte = MyCrypto.DecryptSymDES(cleSession,reponse.getFactures());
+                System.out.println("Decryptage symétrique du message...");
+
+                // Récupération des données claires
+                ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                LinkedList<Facture> list = (LinkedList<Facture>) ois.readObject();
+
+                facturesAPayer = list;
+
+                DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureAPayer().getModel();
+
+                for (Facture facture:facturesAPayer) {
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+                }
+            }
+
+            //recuperation des factures deja paye
+            requete = new RequeteGetFactures_S(true, idClient,clePriveeClient);
+            oos.writeObject(requete);
+
+            reponse = (ReponseGetFactures_S) ois.readObject();
+
+            if (reponse.isValide()){
+                // Décryptage symétrique du message
+                byte[] messageDecrypte;
+                System.out.println("Message reçu = " + new String(reponse.getFactures()));
+                messageDecrypte = MyCrypto.DecryptSymDES(cleSession,reponse.getFactures());
+                System.out.println("Decryptage symétrique du message...");
+
+                // Récupération des données claires
+                ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                LinkedList<Facture> list = (LinkedList<Facture>) ois.readObject();
+
+                facturesDejaPayer = list;
+
+                DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureDejaPayer().getModel();
+
+                for (Facture facture:facturesDejaPayer) {
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+                }
             }
         }
         catch (Exception ex)

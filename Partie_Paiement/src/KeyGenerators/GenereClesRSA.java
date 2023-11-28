@@ -20,14 +20,14 @@ public class GenereClesRSA {
         System.out.println(" *** Cle privee generee = " + clePrivee);
 
         // Sérialisation des clés dans des fichiers différents
-        ObjectOutputStream oos1 = new ObjectOutputStream(new FileOutputStream("./Fichiers/clePubliqueServeur.ser"));
+        ObjectOutputStream oos1 = new ObjectOutputStream(new FileOutputStream("./Fichiers/clePubliqueClient.ser"));
         oos1.writeObject(clePublique);
         oos1.close();
-        System.out.println("Sérialisation de la clé publique dans le fichier clePubliqueServeur.ser");
+        System.out.println("Sérialisation de la clé publique dans le fichier clePubliqueClient.ser");
 
-        ObjectOutputStream oos2 = new ObjectOutputStream(new FileOutputStream("./Fichiers/clePriveeServeur.ser"));
+        ObjectOutputStream oos2 = new ObjectOutputStream(new FileOutputStream("./Fichiers/clePriveeClient.ser"));
         oos2.writeObject(clePrivee);
         oos2.close();
-        System.out.println("Sérialisation de la clé privée dans le fichier clePriveeServeur.ser");
+        System.out.println("Sérialisation de la clé privée dans le fichier clePriveeClient.ser");
     }
 }
