@@ -255,7 +255,22 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
     }
 
     private void onPayer() {
+        System.out.println("Button payer clicker");
 
+        try {
+            if(homeWindow.getJTableFactureAPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à payer");
+
+            carteVisa = new CarteVisa();
+            carteVisa.setControleur(this);
+            carteVisa.setVisible(true);
+
+            homeWindow.setVisible(false);
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     //----------------------------------------------------------------------------------
@@ -263,11 +278,78 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
     //----------------------------------------------------------------------------------
 
     private void onCancel() {
-
+        carteVisa.setVisible(false);
+        homeWindow.setVisible(true);
     }
 
     private void onValider() {
+        try {
+            if(carteVisa.getNomField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le nom");
+            if(carteVisa.getNumeroField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le numero");
+            if(carteVisa.getDateField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour la date");
+            if(carteVisa.getCVCField().getText().equals("")) throw new Exception("veuillez entrer une valeur pour le CVC");
 
+            int idFact = facturesAPayer.get(homeWindow.getJTableFactureAPayer().getSelectedRow()).getIdFacture();
+            String nom = carteVisa.getNomField().getText();
+            String numero = carteVisa.getNumeroField().getText();
+
+            // Constructon du vecteur de bytes du message clair
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeInt(idFact);
+            dos.writeUTF(nom);
+            dos.writeUTF(numero);
+            byte[] messageClair = baos.toByteArray();
+            System.out.println("Construction du message à envoyer");
+
+            // Cryptage symétrique du message
+            byte[] messageCrypte;
+            messageCrypte = MyCrypto.CryptSymDES(cleSession,messageClair);
+            System.out.println("Cryptage symétrique du message : " + new String(messageCrypte));
+
+            RequetePayFacture_S requete = new RequetePayFacture_S(messageCrypte);
+            oos.writeObject(requete);
+
+            ReponsePayFacture_S reponse = (ReponsePayFacture_S) ois.readObject();
+
+            if(!reponse.VerifyAuthenticity(cleSession))
+                throw new Exception("il y avait un problème d'authenticité !");
+
+            if (reponse.isValide()){
+                if(!reponse.isEchec()){
+                    JOptionPane.showMessageDialog(null, "Votre paiement a été traité avec succès", "Paiement", JOptionPane.INFORMATION_MESSAGE);
+
+                    int index = homeWindow.getJTableFactureAPayer().getSelectedRow();
+
+                    Facture facture = facturesAPayer.get(index);
+
+                    facturesDejaPayer.add(facture);
+
+                    DefaultTableModel modelFactures = (DefaultTableModel) homeWindow.getJTableFactureDejaPayer().getModel();
+
+                    Vector ligne = new Vector();
+                    ligne.add(facture.getIdFacture());
+                    ligne.add(facture.getDateFacture());
+                    ligne.add(facture.getMontant());
+
+                    modelFactures.addRow(ligne);
+
+                    DefaultTableModel modelFactures2 = (DefaultTableModel) homeWindow.getJTableFactureAPayer().getModel();
+
+                    modelFactures2.removeRow(index);
+
+                    facturesAPayer.remove(index);
+
+                    carteVisa.setVisible(false);
+                    homeWindow.setVisible(true);
+                }
+                else throw new Exception("Échec du paiement.");
+            }
+            else throw new Exception("numéro de carte invalide");
+        } catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     //----------------------------------------------------------------------------------

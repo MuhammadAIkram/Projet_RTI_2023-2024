@@ -4,10 +4,7 @@ import Beans.DataBaseBeanHandler;
 import Modele.Facture;
 import Modele.Vente;
 import ServeurGeneriqueTCP.*;
-import VESPAP.ReponseCONSULT;
-import VESPAP.ReponseLOGOUT;
-import VESPAP.RequeteCONSULT;
-import VESPAP.RequeteLOGOUT;
+import VESPAP.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.crypto.*;
@@ -66,6 +63,7 @@ public class VESPAPS implements Protocole
         if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
         if (requete instanceof RequeteGetFactures_S) return TraiteRequeteGetFactures((RequeteGetFactures_S) requete);
         if (requete instanceof RequeteCONSULT_S) return TraiteRequeteCONSULT((RequeteCONSULT_S) requete);
+        if (requete instanceof RequetePayFacture_S) return TraiteRequetePayFacture((RequetePayFacture_S) requete);
 
         return null;
     }
@@ -215,6 +213,68 @@ public class VESPAPS implements Protocole
         System.out.println("Cle publique recuperer");
 
         return cle;
+    }
+
+    private synchronized ReponsePayFacture_S TraiteRequetePayFacture(RequetePayFacture_S requete) {
+        logger.Trace("RequetePayFacture reçue");
+
+        String visaRegex = "^4[0-9]{15}$";
+
+        // Décryptage symétrique du message
+        byte[] messageDecrypte;
+        System.out.println("Message reçu = " + new String(requete.getData()));
+        try {
+            messageDecrypte = MyCrypto.DecryptSymDES(cleSession,requete.getData());
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Decryptage symétrique du message...");
+
+        // Récupération des données claires
+        ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
+        DataInputStream dis = new DataInputStream(bais);
+        int idFacture;
+        String nomCarte;
+        String numeroCarte;
+
+        try {
+            idFacture = dis.readInt();
+            nomCarte = dis.readUTF();
+            numeroCarte = dis.readUTF();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (numeroCarte.matches(visaRegex)) {
+            //System.out.println("Valid Visa card number");
+
+            int veri = dataBaseBeanHandler.EffectuerPaiement(idFacture);
+
+            if(veri == 1){
+                logger.Trace("Paiement Reussi");
+                try {
+                    return new ReponsePayFacture_S(true, false, cleSession);
+                } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            else{
+                logger.Trace("Paiement Echec");
+                try {
+                    return new ReponsePayFacture_S(true, true, cleSession);
+                } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        } else {
+            logger.Trace("Carte Invalid!");
+            try {
+                return new ReponsePayFacture_S(false, true, cleSession);
+            } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
