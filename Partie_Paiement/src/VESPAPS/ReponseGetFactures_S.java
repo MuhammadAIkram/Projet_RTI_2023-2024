@@ -1,9 +1,6 @@
 package VESPAPS;
 
-import Modele.Facture;
 import ServeurGeneriqueTCP.Reponse;
-
-import java.util.LinkedList;
 
 public class ReponseGetFactures_S implements Reponse {
     private boolean valide;

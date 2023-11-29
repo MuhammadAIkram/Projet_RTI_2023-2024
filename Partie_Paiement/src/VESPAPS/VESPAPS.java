@@ -105,7 +105,16 @@ public class VESPAPS implements Protocole
 
             ReponseLOGIN_S reponse = new ReponseLOGIN_S(true);
             reponse.setIdClient(id);
-            reponse.setCleSession(cleSession);
+
+            byte[] cleSessionCrypte;
+            try {
+                cleSessionCrypte = MyCrypto.CryptAsymRSA(clePubliqueClient,cleSession.getEncoded());
+            } catch (NoSuchPaddingException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("Cryptage asymétrique de la clé de session : " + new String(cleSessionCrypte));
+
+            reponse.setCleSession(cleSessionCrypte);
             return reponse;
         }
         else

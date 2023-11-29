@@ -7,7 +7,7 @@ import javax.crypto.SecretKey;
 public class ReponseLOGIN_S implements Reponse {
     private boolean valide;
     private int idClient;
-    private SecretKey cleSession;
+    private byte[] cleSession;
 
     ReponseLOGIN_S(boolean v) {
         valide = v;
@@ -21,7 +21,7 @@ public class ReponseLOGIN_S implements Reponse {
         return idClient;
     }
 
-    public SecretKey getCleSession() {
+    public byte[] getCleSession() {
         return cleSession;
     }
 
@@ -29,7 +29,7 @@ public class ReponseLOGIN_S implements Reponse {
         this.idClient = idClient;
     }
 
-    public void setCleSession(SecretKey cleSession) {
+    public void setCleSession(byte[] cleSession) {
         this.cleSession = cleSession;
     }
 }

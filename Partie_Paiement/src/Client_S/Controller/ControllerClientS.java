@@ -11,6 +11,7 @@ import VESPAP.RequeteLOGOUT;
 import VESPAPS.*;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
@@ -147,7 +148,12 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
             if (reponse.isValide()){
                 idClient = reponse.getIdClient();
-                cleSession = reponse.getCleSession();
+
+                byte[] cleSessionDecryptee;
+                System.out.println("Clé session cryptée reçue = " + new String(reponse.getCleSession()));
+                cleSessionDecryptee = MyCrypto.DecryptAsymRSA(clePriveeClient,reponse.getCleSession());
+                cleSession = new SecretKeySpec(cleSessionDecryptee,"DES");
+                System.out.println("Decryptage asymétrique de la clé de session...");
 
                 System.out.println("Génération d'une clé de session : " + cleSession);
 
