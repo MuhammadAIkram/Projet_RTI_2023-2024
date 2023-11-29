@@ -5,12 +5,10 @@ import Client.GUI.HomeWindow;
 import Client.GUI.LoginWindow;
 import Client.GUI.VisualiserFactureWindow;
 import Modele.Facture;
+import Modele.Vente;
 import VESPAP.ReponseLOGOUT;
 import VESPAP.RequeteLOGOUT;
-import VESPAPS.ReponseGetFactures_S;
-import VESPAPS.ReponseLOGIN_S;
-import VESPAPS.RequeteGetFactures_S;
-import VESPAPS.RequeteLOGIN_S;
+import VESPAPS.*;
 
 import javax.crypto.SecretKey;
 import javax.swing.*;
@@ -81,6 +79,24 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
         }
         if(e.getSource() == homeWindow.getLogoutButton()){
             onLogout();
+        }
+        if(e.getSource() == homeWindow.getPayerButton()){
+            onPayer();
+        }
+        if(e.getSource() == homeWindow.getVisualiserAPayerButton()){
+            onVisualiserAPayer();
+        }
+        if(e.getSource() == homeWindow.getVisualiserDejaPayerButton()){
+            onVisualiserDejaPayer();
+        }
+        if(e.getSource() == carteVisa.getValiderButton()){
+            onValider();
+        }
+        if(e.getSource() == carteVisa.getCancelButton()){
+            onCancel();
+        }
+        if(e.getSource() == visualiserFactureWindow.getFermerButton()){
+            onFermer();
         }
     }
 
@@ -158,6 +174,102 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
         }
     }
 
+    private void onVisualiserDejaPayer() {
+        System.out.println("Button VisualiserDejaPayer clicker");
+
+        try {
+            if(homeWindow.getJTableFactureDejaPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures deja payer)");
+
+            Facture facture = facturesDejaPayer.get(homeWindow.getJTableFactureDejaPayer().getSelectedRow());
+
+            RequeteCONSULT_S requete = new RequeteCONSULT_S(facture.getIdFacture(), clePriveeClient);
+            oos.writeObject(requete);
+
+            ReponseCONSULT_S reponse = (ReponseCONSULT_S) ois.readObject();
+
+            if (reponse.isValide()){
+                // Décryptage symétrique du message
+                byte[] messageDecrypte;
+                System.out.println("Message reçu = " + new String(reponse.getArticles()));
+                messageDecrypte = MyCrypto.DecryptSymDES(cleSession,reponse.getArticles());
+                System.out.println("Decryptage symétrique du message...");
+
+                // Récupération des données claires
+                ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
+                ObjectInputStream objectOut = new ObjectInputStream(bais);
+                LinkedList<Vente> list = (LinkedList<Vente>) objectOut.readObject();
+
+                visualiserFactureWindow = new VisualiserFactureWindow(facture.getIdFacture(), facture.getDateFacture(), facture.getMontant(), list);
+                visualiserFactureWindow.setControleur(this);
+                visualiserFactureWindow.setVisible(true);
+
+                homeWindow.setVisible(false);
+            }
+            else throw new Exception("Erreur avec consult");
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onVisualiserAPayer() {
+        System.out.println("Button onVisualiserAPayer clicker");
+
+        try {
+            if(homeWindow.getJTableFactureAPayer().getSelectedRow() == -1)
+                throw new Exception("veuillez sélectionner la facture à visualiser (dans la liste des factures a payer)");
+
+            Facture facture = facturesAPayer.get(homeWindow.getJTableFactureAPayer().getSelectedRow());
+
+            RequeteCONSULT_S requete = new RequeteCONSULT_S(facture.getIdFacture(), clePriveeClient);
+            oos.writeObject(requete);
+
+            ReponseCONSULT_S reponse = (ReponseCONSULT_S) ois.readObject();
+
+            if (reponse.isValide()){
+                // Décryptage symétrique du message
+                byte[] messageDecrypte;
+                System.out.println("Message reçu = " + new String(reponse.getArticles()));
+                messageDecrypte = MyCrypto.DecryptSymDES(cleSession,reponse.getArticles());
+                System.out.println("Decryptage symétrique du message...");
+
+                // Récupération des données claires
+                ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
+                ObjectInputStream objectOut = new ObjectInputStream(bais);
+                LinkedList<Vente> list = (LinkedList<Vente>) objectOut.readObject();
+
+                visualiserFactureWindow = new VisualiserFactureWindow(facture.getIdFacture(), facture.getDateFacture(), facture.getMontant(), list);
+                visualiserFactureWindow.setControleur(this);
+                visualiserFactureWindow.setVisible(true);
+
+                homeWindow.setVisible(false);
+            }
+            else throw new Exception("Erreur avec consult");
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onPayer() {
+
+    }
+
+    //----------------------------------------------------------------------------------
+    //---------		carte visa
+    //----------------------------------------------------------------------------------
+
+    private void onCancel() {
+
+    }
+
+    private void onValider() {
+
+    }
+
     //----------------------------------------------------------------------------------
     //---------		home window
     //----------------------------------------------------------------------------------
@@ -216,8 +328,8 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
                 // Récupération des données claires
                 ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                LinkedList<Facture> list = (LinkedList<Facture>) ois.readObject();
+                ObjectInputStream objectOut = new ObjectInputStream(bais);
+                LinkedList<Facture> list = (LinkedList<Facture>) objectOut.readObject();
 
                 facturesAPayer = list;
 
@@ -249,8 +361,8 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
 
                 // Récupération des données claires
                 ByteArrayInputStream bais = new ByteArrayInputStream(messageDecrypte);
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                LinkedList<Facture> list = (LinkedList<Facture>) ois.readObject();
+                ObjectInputStream objectOut = new ObjectInputStream(bais);
+                LinkedList<Facture> list = (LinkedList<Facture>) objectOut.readObject();
 
                 facturesDejaPayer = list;
 
@@ -271,5 +383,10 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
         {
             JOptionPane.showMessageDialog(null,ex.getMessage(),"Erreur...",JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void onFermer() {
+        visualiserFactureWindow.setVisible(false);
+        homeWindow.setVisible(true);
     }
 }

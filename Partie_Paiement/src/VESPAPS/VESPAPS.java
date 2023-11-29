@@ -2,8 +2,11 @@ package VESPAPS;
 
 import Beans.DataBaseBeanHandler;
 import Modele.Facture;
+import Modele.Vente;
 import ServeurGeneriqueTCP.*;
+import VESPAP.ReponseCONSULT;
 import VESPAP.ReponseLOGOUT;
+import VESPAP.RequeteCONSULT;
 import VESPAP.RequeteLOGOUT;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -62,6 +65,7 @@ public class VESPAPS implements Protocole
         if (requete instanceof RequeteLOGIN_S) return TraiteRequeteLOGIN_S((RequeteLOGIN_S) requete, socket);
         if (requete instanceof RequeteLOGOUT) return TraiteRequeteLOGOUT((RequeteLOGOUT) requete);
         if (requete instanceof RequeteGetFactures_S) return TraiteRequeteGetFactures((RequeteGetFactures_S) requete);
+        if (requete instanceof RequeteCONSULT_S) return TraiteRequeteCONSULT((RequeteCONSULT_S) requete);
 
         return null;
     }
@@ -122,7 +126,7 @@ public class VESPAPS implements Protocole
         return reponse;
     }
 
-    private ReponseGetFactures_S TraiteRequeteGetFactures(RequeteGetFactures_S requete) {
+    private synchronized ReponseGetFactures_S TraiteRequeteGetFactures(RequeteGetFactures_S requete) {
         logger.Trace("RequeteGetFactures reçue");
 
         try {
@@ -160,6 +164,46 @@ public class VESPAPS implements Protocole
         System.out.println("Cryptage symétrique du message : " + new String(messageCrypte));
 
         return new ReponseGetFactures_S(true, messageCrypte);
+    }
+
+    private synchronized ReponseCONSULT_S TraiteRequeteCONSULT(RequeteCONSULT_S requete) {
+        logger.Trace("RequeteCONSULT reçue");
+
+        try {
+            if(!requete.VerifySignature(clePubliqueClient)){
+                logger.Trace("Mauvais signature !");
+                return new ReponseCONSULT_S(false, null);
+            }
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException | IOException | SignatureException e) {
+            throw new RuntimeException(e);
+        }
+
+        LinkedList<Vente> articles = dataBaseBeanHandler.selectVentes(requete.getIdFacture());
+
+        // Constructon du vecteur de bytes du message clair
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(baos);
+            // Writing the linked list object to ObjectOutputStream
+            oos.writeObject(articles);
+            oos.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        byte[] messageClair = baos.toByteArray();
+        System.out.println("Construction du message à envoyer");
+
+        byte[] messageCrypte;
+        try {
+            messageCrypte = MyCrypto.CryptSymDES(cleSession,messageClair);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Cryptage symétrique du message : " + new String(messageCrypte));
+
+        return new ReponseCONSULT_S(true, messageCrypte);
     }
 
     public static PublicKey RecupereClePubliqueClient() throws IOException, ClassNotFoundException {

@@ -7,32 +7,25 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.*;
 
-public class RequeteGetFactures_S implements Requete {
-    private boolean paye;
-    private int idClient;
+public class RequeteCONSULT_S implements Requete {
+    private int idFacture;
     private byte[] signature; // signature envoyée
 
-    public RequeteGetFactures_S(boolean paye, int idClient, PrivateKey clePriveeClient) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException, IOException {
-        this.paye = paye;
-        this.idClient = idClient;
+    public RequeteCONSULT_S(int idFacture, PrivateKey clePriveeClient) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, IOException, SignatureException {
+        this.idFacture = idFacture;
 
         // Construction de la signature
         Signature s = Signature.getInstance("SHA1withRSA","BC");
         s.initSign(clePriveeClient);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeBoolean(paye);
-        dos.writeInt(idClient);
+        dos.writeInt(idFacture);
         s.update(baos.toByteArray());
         signature = s.sign();
     }
 
-    public boolean isPaye() {
-        return paye;
-    }
-
-    public int getIdClient() {
-        return idClient;
+    public int getIdFacture() {
+        return idFacture;
     }
 
     public boolean VerifySignature(PublicKey clePubliqueClient) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, IOException, SignatureException {
@@ -41,8 +34,7 @@ public class RequeteGetFactures_S implements Requete {
         s.initVerify(clePubliqueClient);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeBoolean(paye);
-        dos.writeInt(idClient);
+        dos.writeInt(idFacture);
         s.update(baos.toByteArray());
 
         // Vérification de la signature reçue
