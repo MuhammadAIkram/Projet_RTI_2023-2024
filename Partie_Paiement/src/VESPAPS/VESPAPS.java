@@ -11,6 +11,8 @@ import javax.crypto.*;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.LinkedList;
 import MyCrypto.MyCrypto;
@@ -35,7 +37,7 @@ public class VESPAPS implements Protocole
 
         try {
             clePubliqueClient = RecupereClePubliqueClient();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
 
@@ -213,11 +215,15 @@ public class VESPAPS implements Protocole
         return new ReponseCONSULT_S(true, messageCrypte);
     }
 
-    public static PublicKey RecupereClePubliqueClient() throws IOException, ClassNotFoundException {
+    public static PublicKey RecupereClePubliqueClient() throws IOException, ClassNotFoundException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         // Désérialisation de la clé publique
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./Fichiers/clePubliqueClient.ser"));
-        PublicKey cle = (PublicKey) ois.readObject();
-        ois.close();
+//        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./Fichiers/clePubliqueClient.ser"));
+//        PublicKey cle = (PublicKey) ois.readObject();
+//        ois.close();
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("./Fichiers/KeystoreServeur.jks"),"PassKeystore".toCharArray());
+        X509Certificate certif = (X509Certificate)ks.getCertificate("keymaraicherclient");
+        PublicKey cle = certif.getPublicKey();
 
         System.out.println("Cle publique recuperer");
 

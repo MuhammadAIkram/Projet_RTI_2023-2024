@@ -20,7 +20,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
-import java.security.PrivateKey;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Vector;
@@ -386,11 +387,15 @@ public class ControllerClientS extends WindowAdapter implements ActionListener {
     //---------		autres
     //----------------------------------------------------------------------------------
 
-    public static PrivateKey RecupereClePriveeClient() throws IOException, ClassNotFoundException {
+    public static PrivateKey RecupereClePriveeClient() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         // Désérialisation de la clé privée du serveur
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./Fichiers/clePriveeClient.ser"));
-        PrivateKey cle = (PrivateKey) ois.readObject();
-        ois.close();
+//        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./Fichiers/clePriveeClient.ser"));
+//        PrivateKey cle = (PrivateKey) ois.readObject();
+//        ois.close();
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("./Fichiers/KeystoreClient.jks"),"PassKeystore".toCharArray());
+
+        PrivateKey cle = (PrivateKey) ks.getKey("keymaraicherclient","passclient".toCharArray());
 
         System.out.println("Cle privee recuperer");
 
