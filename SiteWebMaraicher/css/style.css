@@ -1,0 +1,32 @@
+body {
+    background-color: #352F44 !important;
+}
+
+#MainTitle{
+    text-align: center;
+    background-color: #5C5470;
+    margin-top: 50px;
+    padding: 10px;
+    color: #FAF0E6;
+    border: 2px solid #FAF0E6;
+}
+
+#MainContainer {
+    background-color: #5C5470;
+    margin-top: 50px;
+    border: 2px solid #FAF0E6;
+    color: #FAF0E6;
+}
+
+#ArticleImage {
+    margin: 25px;
+}
+
+#col2 {
+    background-color: #B9B4C7;
+    margin-top: 25px;
+}
+
+input {
+    width: 100%;
+}
