@@ -1,0 +1,150 @@
+
+[
+    {
+        "id": 1,
+        "intitule": "carottes",
+        "prix": 2.1600000858306885,
+        "stock": 1,
+        "image": "carottes.jpg"
+    },
+    {
+        "id": 2,
+        "intitule": "cerises",
+        "prix": 9.75,
+        "stock": 8,
+        "image": "cerises.jpg"
+    },
+    {
+        "id": 3,
+        "intitule": "artichaut",
+        "prix": 1.6200000047683716,
+        "stock": 12,
+        "image": "artichaut.jpg"
+    },
+    {
+        "id": 4,
+        "intitule": "bananes",
+        "prix": 2.5999999046325684,
+        "stock": 3,
+        "image": "bananes.jpg"
+    },
+    {
+        "id": 5,
+        "intitule": "champignons",
+        "prix": 10.25,
+        "stock": 4,
+        "image": "champignons.jpg"
+    },
+    {
+        "id": 6,
+        "intitule": "concombre",
+        "prix": 1.1699999570846558,
+        "stock": 2,
+        "image": "concombre.jpg"
+    },
+    {
+        "id": 7,
+        "intitule": "courgette",
+        "prix": 1.1699999570846558,
+        "stock": 14,
+        "image": "courgette.jpg"
+    },
+    {
+        "id": 8,
+        "intitule": "haricots",
+        "prix": 10.819999694824219,
+        "stock": 7,
+        "image": "haricots.jpg"
+    },
+    {
+        "id": 9,
+        "intitule": "laitue",
+        "prix": 1.6200000047683716,
+        "stock": 10,
+        "image": "laitue.jpg"
+    },
+    {
+        "id": 10,
+        "intitule": "oranges",
+        "prix": 3.7799999713897705,
+        "stock": 23,
+        "image": "oranges.jpg"
+    },
+    {
+        "id": 11,
+        "intitule": "oignons",
+        "prix": 2.119999885559082,
+        "stock": 4,
+        "image": "oignons.jpg"
+    },
+    {
+        "id": 12,
+        "intitule": "nectarines",
+        "prix": 10.380000114440918,
+        "stock": 6,
+        "image": "nectarines.jpg"
+    },
+    {
+        "id": 13,
+        "intitule": "peches",
+        "prix": 8.479999542236328,
+        "stock": 11,
+        "image": "peches.jpg"
+    },
+    {
+        "id": 14,
+        "intitule": "poivron",
+        "prix": 1.2899999618530273,
+        "stock": 0,
+        "image": "poivron.jpg"
+    },
+    {
+        "id": 15,
+        "intitule": "pommes de terre",
+        "prix": 2.1700000762939453,
+        "stock": 25,
+        "image": "pommesDeTerre.jpg"
+    },
+    {
+        "id": 16,
+        "intitule": "pommes",
+        "prix": 4.0,
+        "stock": 26,
+        "image": "pommes.jpg"
+    },
+    {
+        "id": 17,
+        "intitule": "citrons",
+        "prix": 4.440000057220459,
+        "stock": 11,
+        "image": "citrons.jpg"
+    },
+    {
+        "id": 18,
+        "intitule": "ail",
+        "prix": 1.0800000429153442,
+        "stock": 14,
+        "image": "ail.jpg"
+    },
+    {
+        "id": 19,
+        "intitule": "aubergine",
+        "prix": 1.6200000047683716,
+        "stock": 17,
+        "image": "aubergine.jpg"
+    },
+    {
+        "id": 20,
+        "intitule": "echalotes",
+        "prix": 6.480000019073486,
+        "stock": 13,
+        "image": "echalotes.jpg"
+    },
+    {
+        "id": 21,
+        "intitule": "tomates",
+        "prix": 5.489999771118164,
+        "stock": 22,
+        "image": "tomates.jpg"
+    }
+]
