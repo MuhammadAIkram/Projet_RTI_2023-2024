@@ -68,6 +68,13 @@ public class DataBaseBeanHandler {
         }
     }
 
+    public void updateData(int id, float prix, int stock) throws SQLException {
+        String query = "UPDATE articles SET prix = " + prix + ", stock = "+ stock +" WHERE id = " + id;
+        beanGenerique.executeIUD(query);
+
+        System.out.println("Mise a jour succes!!!!");
+    }
+
     public void close() {
         try {
             beanGenerique.close();

@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/style.css" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="Javascript/code.js" defer></script>
+    <link rel="shortcut icon" href="#">
 </head>
 <body>
     <div class="container">
@@ -20,7 +21,7 @@
                 </div>
                 <div class="col" id="col2">
                     <h3>Article Selectionner</h3>
-                    <form action="FormArticle" method="POST">
+                    <form action="FormArticle" method="POST" id="FormArticle">
                         <label for="ID_Art">ID</label>
                         <input type="text" id="ID_Art" name="Id_Article" placeholder="Id_Article" disabled>
 
@@ -28,10 +29,10 @@
                         <input type="text" id="Nom_Art" name="Nom_Article" placeholder="Nom_Article" disabled>
 
                         <label for="Prix_Art">Prix unitaire</label>
-                        <input type="number" step="0.01" id="Prix_Art" name="Prix_Article" placeholder="Prix_Article">
+                        <input type="number" step="0.01" id="Prix_Art" name="Prix_Article" placeholder="Prix_Article" min="0">
 
                         <label for="Quant_Art">Quantite</label>
-                        <input type="number" id="Quant_Art" name="Quant_Article" placeholder="Quant_Article">
+                        <input type="number" id="Quant_Art" name="Quant_Article" placeholder="Quant_Article" min="0">
 
                         <br>
                         <br>

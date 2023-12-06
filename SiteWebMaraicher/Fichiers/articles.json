@@ -3,29 +3,29 @@
     {
         "id": 1,
         "intitule": "carottes",
-        "prix": 2.1600000858306885,
-        "stock": 1,
+        "prix": 55.54999923706055,
+        "stock": 15,
         "image": "carottes.jpg"
     },
     {
         "id": 2,
         "intitule": "cerises",
-        "prix": 9.75,
-        "stock": 8,
+        "prix": 5.0,
+        "stock": 3,
         "image": "cerises.jpg"
     },
     {
         "id": 3,
         "intitule": "artichaut",
-        "prix": 1.6200000047683716,
-        "stock": 12,
+        "prix": 11.0,
+        "stock": 5,
         "image": "artichaut.jpg"
     },
     {
         "id": 4,
         "intitule": "bananes",
-        "prix": 2.5999999046325684,
-        "stock": 3,
+        "prix": 2.299999952316284,
+        "stock": 15,
         "image": "bananes.jpg"
     },
     {
@@ -38,8 +38,8 @@
     {
         "id": 6,
         "intitule": "concombre",
-        "prix": 1.1699999570846558,
-        "stock": 2,
+        "prix": 55.54999923706055,
+        "stock": 6,
         "image": "concombre.jpg"
     },
     {

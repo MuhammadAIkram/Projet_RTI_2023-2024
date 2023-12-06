@@ -22,7 +22,7 @@ public class HandlerJavascript implements HttpHandler {
             if (file.exists())
             {
                 exchange.sendResponseHeaders(200, file.length());
-                exchange.getResponseHeaders().set("Content-Type", "text/css");
+                exchange.getResponseHeaders().set("Content-Type", "text/javascript");
                 OutputStream os = exchange.getResponseBody();
                 Files.copy(file.toPath(), os);
                 os.close();

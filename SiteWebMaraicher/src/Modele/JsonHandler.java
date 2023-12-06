@@ -13,4 +13,12 @@ public class JsonHandler {
 
         dataBaseBeanHandler.close();
     }
+
+    public static void UpdateDatabase(int id, float prix, int stock) throws SQLException {
+        DataBaseBeanHandler dataBaseBeanHandler = new DataBaseBeanHandler();
+
+        dataBaseBeanHandler.updateData(id,prix,stock);
+
+        dataBaseBeanHandler.close();
+    }
 }
