@@ -18,7 +18,7 @@ public class DataBaseBeanHandler {
         beanGenerique = new DataBaseBeanGenerique();
     }
 
-    public LinkedList<Article> getAllArticles(){
+    public synchronized LinkedList<Article> getAllArticles(){
         try {
             String query = "SELECT * FROM articles";
 
@@ -43,7 +43,7 @@ public class DataBaseBeanHandler {
         }
     }
 
-    public void writeArticlesToJsonFile() throws SQLException, IOException {
+    public synchronized void writeArticlesToJsonFile() throws SQLException, IOException {
         List<Article> articles = getAllArticles();
         JsonArray jsonArray = Json.createArrayBuilder().build();
 
@@ -68,7 +68,7 @@ public class DataBaseBeanHandler {
         }
     }
 
-    public void updateData(int id, float prix, int stock) throws SQLException {
+    public synchronized void updateData(int id, float prix, int stock) throws SQLException {
         String query = "UPDATE articles SET prix = " + prix + ", stock = "+ stock +" WHERE id = " + id;
         beanGenerique.executeIUD(query);
 

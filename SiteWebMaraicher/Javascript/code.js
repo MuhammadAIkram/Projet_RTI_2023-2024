@@ -25,6 +25,7 @@ function createRowsFromJSON(data) {
             changeForm(item.id, item.intitule, item.prix, item.stock);
             selectedRow = item;
         });
+
         tableBody.appendChild(newRow);
     });
 }
@@ -79,12 +80,10 @@ ArticleForm.addEventListener('submit', function(event){
                     });
             } else {
                 alert("Erreur mises à jour");
-                // Handle error cases here
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            // Handle network errors or exceptions here
         });
     }
     else alert("veuillez sélectionner un article");

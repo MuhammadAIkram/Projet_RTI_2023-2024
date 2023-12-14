@@ -27,17 +27,16 @@ public class HandlerFormulaire implements HttpHandler {
             }
             reader.close();
 
-            // Convert the request body (JSON data) to a JSON object
+            // Convertion vers object json
             String jsonData = requestBody.toString();
             JsonReader jsonReader = Json.createReader(new java.io.StringReader(jsonData));
             JsonObject jsonObject = jsonReader.readObject();
 
-            // Access and handle JSON object values
-            Float prix = Float.valueOf(jsonObject.getString("prix"));
+            // acces au valeur du object json en utilisent ces cles
+            float prix = Float.parseFloat(jsonObject.getString("prix"));
             int stock = Integer.parseInt(jsonObject.getString("stock"));
             int id = jsonObject.getInt("id");
 
-            // Perform actions with the JSON object values as needed
             System.out.print("(id: " + id + " - prix: " + prix + " - stock: " + stock + ") || ");
 
             try {
